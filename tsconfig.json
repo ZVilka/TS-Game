@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "build",
+    "noEmitOnError": true,
+    "strictNullChecks": false
+  },
+  "include": [
+    "./src/*"
+  ]
+}
