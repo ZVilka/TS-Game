@@ -34,7 +34,7 @@ export default class Cell {
             }
             case CELLTYPE.Wall: {
                 this._drawRectangle("MediumBlue");
-                this._drawImage('assets/img/wall.svg', this.sizeCell);
+                this._drawImage('src/assets/img/wall.svg', this.sizeCell);
                 break;
             }
             default: {
@@ -45,13 +45,13 @@ export default class Cell {
 
     protected _drawRectangle(color: string) {
         this.context.fillStyle = color;
-        this.context.fillRect(this.x, this.y, this.sizeCell, this.sizeCell);
+        this.context.fillRect(this.x * this.sizeCell, this.y * this.sizeCell, this.sizeCell, this.sizeCell);
     }
 
     protected _drawCircle(color: string) {
         const middleOfCellSize = this.sizeCell / 2;
         this.context.beginPath();
-        this.context.arc(this.x + middleOfCellSize, this.y + middleOfCellSize, middleOfCellSize / 2,
+        this.context.arc(this.x * this.sizeCell + middleOfCellSize , this.y * this.sizeCell + middleOfCellSize, middleOfCellSize / 2,
             0, 2 * Math.PI, false);
         this.context.fillStyle = color;
         this.context.fill();
@@ -64,7 +64,7 @@ export default class Cell {
         let img = new Image();
         img.src = url;
         img.onload = () => {
-            this.context.drawImage(img, this.x, this.y, size, size);
+            this.context.drawImage(img, this.x * this.sizeCell, this.y * this.sizeCell, size, size);
         }
     }
 }

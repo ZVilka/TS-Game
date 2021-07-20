@@ -6,50 +6,46 @@ export var AXIS;
     AXIS[AXIS["Vert"] = 1] = "Vert";
 })(AXIS || (AXIS = {}));
 export default class Monster {
-    constructor(x, y, axisNum, context, game, cellSize) {
+    constructor(x, y, context, game, cellSize) {
         this.x = x;
         this.y = y;
-        this.setAxis(axisNum);
         this.context = context;
         this.cellSize = cellSize;
         this.game = game;
         this.isMoving = true;
         this.setImage();
-        this.initDirection();
     }
-    setAxis(axisNum) {
-        switch (axisNum) {
-            case 0:
-                this.axis = AXIS.Hor;
+    move() {
+        let lastCellMonster = this.game.cellArray[this.x][this.y];
+        let destinationCell = this.getDestinationCell();
+        if (this.isMoving) {
+            switch (destinationCell.type) {
+                case CELLTYPE.Wall:
+                    this.changeDirection();
+                    break;
+                default:
+                    this.makeAStep();
+                    break;
+            }
+        }
+        return lastCellMonster;
+    }
+    makeAStep() {
+        switch (this.direction) {
+            case DIR.Up:
+                this.y--;
                 break;
-            case 1:
-                this.axis = AXIS.Vert;
+            case DIR.Down:
+                this.y++;
+                break;
+            case DIR.Left:
+                this.x--;
+                break;
+            case DIR.Right:
+                this.x++;
                 break;
             default:
                 break;
-        }
-    }
-    move() {
-        this.checkDirection();
-        if (this.isMoving) {
-            this.clear();
-            switch (this.direction) {
-                case DIR.Up:
-                    this.y--;
-                    break;
-                case DIR.Down:
-                    this.y++;
-                    break;
-                case DIR.Left:
-                    this.x--;
-                    break;
-                case DIR.Right:
-                    this.x++;
-                    break;
-                default:
-                    break;
-            }
-            this.draw();
         }
     }
     setImage() {
@@ -62,50 +58,65 @@ export default class Monster {
         }.bind(this);
     }
     initDirection() {
+        let isHorAllowed = false;
+        let isVertAllowed = false;
+        if (this.game.cellArray[this.x - 1][this.y].type === CELLTYPE.Food
+            || this.game.cellArray[this.x + 1][this.y].type === CELLTYPE.Food) {
+            isHorAllowed = true;
+        }
+        else if (this.game.cellArray[this.x][this.y + 1].type === CELLTYPE.Food
+            || this.game.cellArray[this.x][this.y - 1].type === CELLTYPE.Food) {
+            isVertAllowed = true;
+        }
+        if (!isHorAllowed && !isVertAllowed) {
+            this.isMoving = false;
+            return;
+        }
+        if (isHorAllowed) {
+            if (isVertAllowed) {
+                this.axis = this.getRandomAxis();
+            }
+            else {
+                this.axis = AXIS.Hor;
+            }
+        }
+        else {
+            this.axis = AXIS.Vert;
+        }
+        this.setDirection();
+    }
+    setDirection() {
         if (this.axis === AXIS.Hor) {
-            this.direction = DIR.Left;
+            this.direction = DIR.Right;
         }
         else if (this.axis === AXIS.Vert) {
             this.direction = DIR.Up;
         }
     }
-    checkDirection() {
-        if (this.axis === AXIS.Hor) {
-            this.checkHorDirection();
+    getDestinationCell() {
+        let newX = this.x;
+        let newY = this.y;
+        switch (this.direction) {
+            case DIR.Up:
+                newY--;
+                break;
+            case DIR.Down:
+                newY++;
+                break;
+            case DIR.Left:
+                newX--;
+                break;
+            case DIR.Right:
+                newX++;
+                break;
+            default:
+                throw "Invalid direction!";
         }
-        else if (this.axis === AXIS.Vert) {
-            this.checkVerDirection();
-        }
+        return this.game.cellArray[newX][newY];
     }
-    checkHorDirection() {
-        if (this.game.cellArray[this.y][this.x - 1].type === CELLTYPE.Wall
-            && this.game.cellArray[this.y][this.x + 1].type === CELLTYPE.Wall) {
-            this.isMoving = false;
-            return;
-        }
-        if (this.x + 1 == this.game.cellArray[0].length
-            || this.x - 1 < 0
-            || this.direction === DIR.Left
-                && this.game.cellArray[this.y][this.x - 1].type === CELLTYPE.Wall
-            || this.direction === DIR.Right
-                && this.game.cellArray[this.y][this.x + 1].type === CELLTYPE.Wall) {
-            this.changeDirection();
-        }
-    }
-    checkVerDirection() {
-        if (this.game.cellArray[this.y - 1][this.x].type === CELLTYPE.Wall
-            && this.game.cellArray[this.y + 1][this.x].type === CELLTYPE.Wall) {
-            this.isMoving = false;
-            return;
-        }
-        if (this.y + 1 == this.game.cellArray.length
-            || this.y - 1 < 0
-            || this.direction === DIR.Up
-                && this.game.cellArray[this.y - 1][this.x].type === CELLTYPE.Wall
-            || this.direction === DIR.Down
-                && this.game.cellArray[this.y + 1][this.x].type === CELLTYPE.Wall) {
-            this.changeDirection();
-        }
+    getRandomAxis() {
+        let random = this.game.getRandomNumber(0, 1);
+        return random ? AXIS.Hor : AXIS.Vert;
     }
     changeDirection() {
         switch (this.direction) {
@@ -127,9 +138,5 @@ export default class Monster {
     }
     draw(x = this.x, y = this.y) {
         this.context.drawImage(this.image, x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
-    }
-    clear(x = this.x, y = this.y) {
-        this.context.fillStyle = "white";
-        this.context.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
     }
 }

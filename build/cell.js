@@ -5,13 +5,13 @@ export var CELLTYPE;
     CELLTYPE[CELLTYPE["Wall"] = 2] = "Wall";
 })(CELLTYPE || (CELLTYPE = {}));
 export default class Cell {
-    constructor(x, y, type, context) {
+    constructor(x, y, type, context, sizeCell = 20) {
         this.weight = 0;
-        this.neighborsArray = [];
         this.x = x;
         this.y = y;
         this.type = type;
         this.context = context;
+        this.sizeCell = sizeCell;
     }
     draw() {
         switch (this.type) {
@@ -26,7 +26,7 @@ export default class Cell {
             }
             case CELLTYPE.Wall: {
                 this._drawRectangle("MediumBlue");
-                this._drawImage('assets/img/wall.svg', 100);
+                this._drawImage('src/assets/img/wall.svg', this.sizeCell);
                 break;
             }
             default: {
@@ -36,11 +36,12 @@ export default class Cell {
     }
     _drawRectangle(color) {
         this.context.fillStyle = color;
-        this.context.fillRect(this.x, this.y, 100, 100);
+        this.context.fillRect(this.x * this.sizeCell, this.y * this.sizeCell, this.sizeCell, this.sizeCell);
     }
     _drawCircle(color) {
+        const middleOfCellSize = this.sizeCell / 2;
         this.context.beginPath();
-        this.context.arc(this.x + 50, this.y + 50, 25, 0, 2 * Math.PI, false);
+        this.context.arc(this.x * this.sizeCell + middleOfCellSize, this.y * this.sizeCell + middleOfCellSize, middleOfCellSize / 2, 0, 2 * Math.PI, false);
         this.context.fillStyle = color;
         this.context.fill();
         this.context.lineWidth = 1;
@@ -51,7 +52,7 @@ export default class Cell {
         let img = new Image();
         img.src = url;
         img.onload = () => {
-            this.context.drawImage(img, this.x, this.y, size, size);
+            this.context.drawImage(img, this.x * this.sizeCell, this.y * this.sizeCell, size, size);
         };
     }
 }

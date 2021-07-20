@@ -1,6 +1,6 @@
 import IAgent from "./IAgent.js";
-import Game from "./game";
-import Cell, {CELLTYPE} from "./cell";
+import Game from "./game.js";
+import Cell, {CELLTYPE} from "./cell.js";
 
 export enum DIR {
     Up,
@@ -11,10 +11,16 @@ export enum DIR {
 
 export default class Pacman implements IAgent {
     set direction(value: DIR) {
-        this._direction = value;
+        let destinationCell = this.getDestinationCell(value);
+        if (destinationCell.type !== CELLTYPE.Wall) {
+            this._direction = value;
+            this.setRotation();
+        }
     }
     x: number;
     y: number;
+
+    private _rotation: number = 0;
 
     private _direction: DIR;
     private readonly _image: HTMLImageElement;
@@ -29,47 +35,107 @@ export default class Pacman implements IAgent {
         this._size = size;
         this._game = game;
         this._image = new Image();
-        this._image.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Pacman.svg/813px-Pacman.svg.png";
+        this._image.src = "src/assets/img/pacman.png";
+        this._image.onload = function (this : Pacman) {
+            this.draw();
+        }.bind(this);
     }
 
     public move(): Cell {
-        let cell = this._game.cellArray[this.x][this.y];
-        switch (this._direction){
+        let prevCell = this._game.cellArray[this.x][this.y];
+        let destinationCell = this.getDestinationCell(this._direction);
+
+        switch (destinationCell.type) {
+            case CELLTYPE.Wall:
+                break;
+            case CELLTYPE.Food:
+                this.makeAStep();
+                this.eatFood(destinationCell);
+                break;
+            default:
+                this.makeAStep();
+                break;
+        }
+        return prevCell;
+    }
+
+    protected makeAStep() :void {
+        switch (this._direction) {
             case DIR.Up:
-                if(this._game.cellArray[this.x][this.y+1].type !== CELLTYPE.Wall)
-                    if(this._game.cellArray[this.x][this.y+1].type === CELLTYPE.Food)
-                        this.eatFood(this.x, this.y+1);
-                    this.y += 1;
+                this.y--;
                 break;
             case DIR.Down:
-                if(this._game.cellArray[this.x][this.y-1].type !== CELLTYPE.Wall)
-                    if(this._game.cellArray[this.x][this.y-1].type === CELLTYPE.Food)
-                        this.eatFood(this.x, this.y-1);
-                    this.y -= 1;
+                this.y++;
                 break;
             case DIR.Left:
-                if(this._game.cellArray[this.x-1][this.y].type !== CELLTYPE.Wall)
-                    if(this._game.cellArray[this.x-1][this.y].type === CELLTYPE.Food)
-                        this.eatFood(this.x-1, this.y);
-                    this.x -= 1;
+                this.x--;
                 break;
             case DIR.Right:
-                if(this._game.cellArray[this.x+1][this.y].type !== CELLTYPE.Wall)
-                    if(this._game.cellArray[this.x+1][this.y].type === CELLTYPE.Food)
-                        this.eatFood(this.x+1, this.y);
-                    this.x += 1;
+                this.x++;
+                break;
             default:
                 break;
         }
+    }
 
-        return cell;
+    public getDestinationCell(direction:DIR): Cell {
+        let newX = this.x;
+        let newY = this.y;
+
+        switch(direction) {
+            case DIR.Up:
+                newY--;
+                break;
+            case DIR.Down:
+                newY++;
+                break;
+            case DIR.Left:
+                newX--;
+                break;
+            case DIR.Right:
+                newX++;
+                break;
+            default:
+                throw "Invalid direction!";
+        }
+        return this._game.cellArray[newX][newY];
     }
 
     public draw(): void {
-        this._ctx.drawImage(this._image, this.x*this._size, this.y*this._size, this._size, this._size);
+        let centerX = this.x * this._size + this._size/2;
+        let centerY = this.y * this._size + this._size/2;
+
+        let radRotation = this._rotation * Math.PI/180
+        this._ctx.translate(centerX, centerY);
+        this._ctx.rotate(radRotation);
+
+        this._ctx.drawImage(this._image, (-this._size/2), (-this._size/2), this._size, this._size);
+
+        this._ctx.rotate(-radRotation);
+        this._ctx.translate(-centerX, -centerY);
     }
 
-    public eatFood(x: number, y: number): void {
-        this._game.cellArray[x][y].type = CELLTYPE.Empty;
+    protected setRotation() :void {
+        switch(this._direction) {
+            case DIR.Up:
+                this._rotation = 0;
+                break;
+            case DIR.Right:
+                this._rotation = 90;
+                break;
+            case DIR.Down:
+                this._rotation = 180;
+                break;
+            case DIR.Left:
+                this._rotation = 270;
+                break;
+            default:
+                throw "Invalid direction!";
+        }
+    }
+
+    public eatFood(cell: Cell): void {
+        this._game.remainingFood--;
+        cell.type = CELLTYPE.Empty;
     }
 }

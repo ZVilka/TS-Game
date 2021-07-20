@@ -3,34 +3,34 @@ import Monster, { AXIS } from "./monster.js";
 import Cell, { CELLTYPE } from "./cell.js";
 
 const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-weeeeemeeeeeeewweeeeeeeeeeeeew
-wewwwwwewwwwwewwewwwwwewwwwwew
-wewwwwwewwwwwewwewwwwwewwwwwew
-wewwwwwewwwwwewwewwwwwewwwwwew
-wewwwwwewwwwwewwewwwwwewwwwwmw
-weeeeeeeeeewwewwewweeeeeeeeeew
-wewwwwwewweeeeeeeeeewwmwwwwwew
-wewwwwwewwewwwwwwwwewwewwwwwew
-weeeeeeewwewwwwwwwwewweeeeeeew
-wewwwwwewweeeewweeeewwewwwwwew
-wewwwwwmwwwwwewwewwwwwewwwwwew
-weeeeeeewwwwwewwewwwwweeeeeeew
-wwwwwwweeeeeeeeeeemeeeewwwwwww
-wwwwwwwewwewwweewwwewwewwwwwww
-wwwwwwwewweweeeeeewewwewwwwwww
-wwwwwwwewweweeeeeewewwewwwwwww
-weeeeeeewweweeeeeewewweeeeeeew
-wewwwwwewweweeeeeewewwewwwwwew
-wewwwwwewwewwweewwwewwewwwwwew
-weeeewwewweeeeeeeeeewwewweeeew
-wwwwewwewwewwwwwwwwewwewwewwww
-wwwwewwewwewwwwwwwwewwewwewwww
-wfffffeeeeeeeewweeemeeeeeeeeew
-wfwwwwwwwwwwwewwewwwwwwwwwwwew
-wewwwwwwwwwwwewwewwwwwwwwwwwew
-wewweeeeeeeeeewweeeeeeeeeewwew
-wewwewwwwwwwwewwewwwwwwwwewwew
-wpwweeeemeeeeeeeeeeeeeeeeewwew
+wfffffmfffffffwwfffffffffffffw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
+wffffffffffwwfwwfwwffffffffffw
+wfwwwwwfwwffffffffffwwmwwwwwfw
+wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
+wfffffffwwfwwwwwwwwfwwfffffffw
+wfwwwwwfwwffffwwffffwwfwwwwwfw
+wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
+wfffffffwwwwwfwwfwwwwwfffffffw
+wwwwwwwfffffffffffmffffwwwwwww
+wwwwwwwfwwfwwwffwwwfwwfwwwwwww
+wwwwwwwfwwfwffffffwfwwfwwwwwww
+wwwwwwwfwwfwffffffwfwwfwwwwwww
+wfffffffwwfwffffffwfwwfffffffw
+wfwwwwwfwwfwffffffwfwwfwwwwwfw
+wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
+wffffwwfwwffffffffffwwfwwffffw
+wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+wfffffffffffffwwfffmfffffffffw
+wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+wfwwffffffffffwwffffffffffwwfw
+wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
+wpwwffffmfffffffffffffffffwwfw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 
 const levelsArray = [level1];
@@ -44,6 +44,7 @@ export default class Game {
     isStarted: boolean = false;
     gameSpeed: number = 100;
     currentLevel: number = 0;
+    isOver: boolean = false;
 
     pacman: Pacman;
     monstersArray: Monster[] = [];
@@ -68,6 +69,7 @@ export default class Game {
 
     private startGame(): void {
         if (!this.isStarted) {
+            this.isStarted = true;
             this.update();
             setTimeout(() => this.updateTimer(), this.gameSpeed);
         }
@@ -102,7 +104,12 @@ export default class Game {
                 this.pacman.direction = DIR.Right;
                 break;
             case " " || "Spacebar":
-                this.startGame();
+                if (!this.isOver)
+                    this.startGame();
+                else {
+                    this.resetGame();
+                    this.loadLevel(this.currentLevel);
+                }
                 break;
             default:
                 break;
@@ -111,10 +118,12 @@ export default class Game {
 
     private resetGame(): void {
         this.stopGame();
+        this.isOver = false;
         this.pacman = undefined;
         this.cellArray = [];
         this.monstersArray = [];
         this.score = 0;
+        this.remainingFood = 0;
     }
 
     // TODO: Добавить размеры объектов в конструкторы, weight клетки
@@ -150,30 +159,73 @@ export default class Game {
                     symbolCounter++;
                     break;
                 case "m":
-                    let rand = this.getRandomNumber(0,1);
-                    let monsterAgent = new Monster(col, row, rand, this.context, this, objectSize);
+                    let foodCellForMonster = new Cell(col, row, CELLTYPE.Food, this.context, objectSize);
+                    this.cellArray[col][row] = foodCellForMonster;
+                    this.remainingFood++;
+                    let monsterAgent = new Monster(col, row, this.context, this, objectSize);
                     this.monstersArray.push(monsterAgent);
                     symbolCounter++;
                     break;
                 case "p":
+                    let emptyCellPacman = new Cell(col, row, CELLTYPE.Empty, this.context, objectSize);
+                    this.cellArray[col][row] = emptyCellPacman;
                     let pacman = new Pacman(col, row, DIR.Up, this.context, this, objectSize);
                     this.pacman = pacman;
                     symbolCounter++;
                     break;
             }
         }
+
+        for (let monster of this.monstersArray) {
+            monster.initDirection();
+        }
+
+        for (let arrCell of this.cellArray) {
+            for (let cell of arrCell) {
+                cell.draw();
+            }
+        }
+        this.pacman.draw();
     }
 
     private update(): void {
-        this.pacman.move();
+        if (this.remainingFood === 0) {
+            alert("Level Finished");
+            this.isOver = true;
+            this.stopGame();
+            return;
+        }
+
+        let prevPacCell = this.pacman.move();
+        prevPacCell.draw();
+        this.pacman.draw();
+        this.checkDeath();
+
         for (let monster of this.monstersArray) {
-            monster.move();
+            let prevCell = monster.move();
+            prevCell.draw();
+            monster.draw();
+            this.checkDeathForMonster(monster);
         }
     }
 
-    private getRandomNumber(min: number, max: number) {
+    protected checkDeath() {
+        for (let monster of this.monstersArray) {
+            this.checkDeathForMonster(monster);
+        }
+    }
+
+    protected checkDeathForMonster(monster:Monster) {
+        if (this.pacman.x === monster.x && this.pacman.y === monster.y) {
+            setTimeout(() => alert("Game Over"), 100);
+            this.isOver = true;
+            this.stopGame();
+        }
+    }
+
+    public getRandomNumber(min: number, max: number) {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 }
 
-const game = new Game(30, 30, 100);
+const game = new Game(30, 30, 500);
