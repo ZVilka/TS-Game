@@ -11,8 +11,6 @@ export default class Cell {
     weight: number = 0;
     sizeCell: number;
 
-    neighborsArray: Cell[] = [];
-
     context: CanvasRenderingContext2D;
 
     constructor(x: number, y: number, type: CELLTYPE, context: CanvasRenderingContext2D, sizeCell = 20) {
