@@ -35,7 +35,7 @@ wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 
 const levelsArray = [level1];
 
-class Game {
+export default class Game {
     width: number;
     height: number;
 
@@ -90,12 +90,16 @@ class Game {
     private onKeydown(event: KeyboardEvent) {
         switch(event.key) {
             case "ArrowUp":
+                this.pacman.direction = DIR.Up;
                 break;
             case "ArrowDown":
+                this.pacman.direction = DIR.Down;
                 break;
             case "ArrowLeft":
+                this.pacman.direction = DIR.Left;
                 break;
             case "ArrowRight":
+                this.pacman.direction = DIR.Right;
                 break;
             case " " || "Spacebar":
                 this.startGame();
@@ -130,29 +134,29 @@ class Game {
                     row++;
                     break;
                 case "e":
-                    let emptyCell = new Cell(col, row, CELLTYPE.Empty, this.context);
+                    let emptyCell = new Cell(col, row, CELLTYPE.Empty, this.context, objectSize);
                     this.cellArray[col][row] = emptyCell;
                     symbolCounter++;
                     break;
                 case "w":
-                    let wallCell = new Cell(col, row, CELLTYPE.Wall, this.context);
+                    let wallCell = new Cell(col, row, CELLTYPE.Wall, this.context, objectSize);
                     this.cellArray[col][row] = wallCell;
                     symbolCounter++;
                     break;
                 case "f":
-                    let foodCell = new Cell(col, row, CELLTYPE.Food, this.context);
+                    let foodCell = new Cell(col, row, CELLTYPE.Food, this.context, objectSize);
                     this.cellArray[col][row] = foodCell;
                     this.remainingFood++;
                     symbolCounter++;
                     break;
                 case "m":
-                    let rand = this.getRandomNumber(1,2);
-                    let monsterAgent = new Monster(col, row, rand);
+                    let rand = this.getRandomNumber(0,1);
+                    let monsterAgent = new Monster(col, row, rand, this.context, this, objectSize);
                     this.monstersArray.push(monsterAgent);
                     symbolCounter++;
                     break;
                 case "p":
-                    let pacman = new Pacman(col, row, DIR.Up);
+                    let pacman = new Pacman(col, row, DIR.Up, this.context, this, objectSize);
                     this.pacman = pacman;
                     symbolCounter++;
                     break;
