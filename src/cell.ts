@@ -51,9 +51,9 @@ export default class Cell {
     }
 
     protected _drawCircle(color: string) {
-        const halfOfCellSize = this.drawSize / 2;
+        const middleOfCellSize = this.drawSize / 2;
         this.context.beginPath();
-        this.context.arc(this.x + halfOfCellSize, this.y + halfOfCellSize, 25,
+        this.context.arc(this.x + middleOfCellSize, this.y + middleOfCellSize, 25,
             0, 2 * Math.PI, false);
         this.context.fillStyle = color;
         this.context.fill();
