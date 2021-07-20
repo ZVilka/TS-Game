@@ -78,7 +78,7 @@ export default class Monster implements IAgent {
         this.image = new Image();
         this.image.width = this.cellSize;
         this.image.height = this.cellSize;
-        this.image.src = "images/monster.svg";
+        this.image.src = "img/monster.svg";
         this.image.onload = function(this : Monster) {
             this.draw();
         }.bind(this);

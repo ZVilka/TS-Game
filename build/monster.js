@@ -56,7 +56,7 @@ export default class Monster {
         this.image = new Image();
         this.image.width = this.cellSize;
         this.image.height = this.cellSize;
-        this.image.src = "images/monster.svg";
+        this.image.src = "src/assets/img/monster.svg";
         this.image.onload = function () {
             this.draw();
         }.bind(this);
