@@ -9,18 +9,18 @@ export default class Cell {
     y: number;
     type: CELLTYPE;
     weight: number = 0;
-    drawSize: number;
+    sizeCell: number;
 
     neighborsArray: Cell[] = [];
 
     context: CanvasRenderingContext2D;
 
-    constructor(x: number, y: number, type: CELLTYPE, context: CanvasRenderingContext2D, sizeCell = 10) {
+    constructor(x: number, y: number, type: CELLTYPE, context: CanvasRenderingContext2D, sizeCell = 20) {
         this.x = x;
         this.y = y;
         this.type = type;
         this.context = context;
-        this.drawSize = sizeCell;
+        this.sizeCell = sizeCell;
     }
 
     public draw(): void {
@@ -36,7 +36,7 @@ export default class Cell {
             }
             case CELLTYPE.Wall: {
                 this._drawRectangle("MediumBlue");
-                this._drawImage('assets/img/wall.svg', this.drawSize);
+                this._drawImage('assets/img/wall.svg', this.sizeCell);
                 break;
             }
             default: {
@@ -47,13 +47,13 @@ export default class Cell {
 
     protected _drawRectangle(color: string) {
         this.context.fillStyle = color;
-        this.context.fillRect(this.x, this.y, this.drawSize, this.drawSize);
+        this.context.fillRect(this.x, this.y, this.sizeCell, this.sizeCell);
     }
 
     protected _drawCircle(color: string) {
-        const middleOfCellSize = this.drawSize / 2;
+        const middleOfCellSize = this.sizeCell / 2;
         this.context.beginPath();
-        this.context.arc(this.x + middleOfCellSize, this.y + middleOfCellSize, 25,
+        this.context.arc(this.x + middleOfCellSize, this.y + middleOfCellSize, middleOfCellSize / 2,
             0, 2 * Math.PI, false);
         this.context.fillStyle = color;
         this.context.fill();
