@@ -10,19 +10,13 @@ export enum DIR {
 }
 
 export default class Pacman implements IAgent {
-    set direction(value: DIR) {
-        let destinationCell = this.getDestinationCell(value);
-        if (destinationCell.type !== CELLTYPE.Wall) {
-            this._direction = value;
-            this.setRotation();
-        }
-    }
     x: number;
     y: number;
 
     private _rotation: number = 0;
 
     private _direction: DIR;
+    private _nextDir: DIR;
     private readonly _image: HTMLImageElement;
     private _ctx: CanvasRenderingContext2D;
     private readonly _size: number;
@@ -31,6 +25,7 @@ export default class Pacman implements IAgent {
         this.x = x;
         this.y = y;
         this._direction = dir;
+        this._nextDir = dir;
         this._ctx = ctx;
         this._size = size;
         this._game = game;
@@ -39,6 +34,19 @@ export default class Pacman implements IAgent {
         this._image.onload = function (this : Pacman) {
             this.draw();
         }.bind(this);
+    }
+
+    public updateDirection() :void {
+        let destinationCell = this.getDestinationCell(this._nextDir);
+        if (destinationCell.type !== CELLTYPE.Wall) {
+            this._direction = this._nextDir;
+            this.setRotation();
+        }
+        this._nextDir = this._direction;
+    }
+
+    public setNextDirection(dir:DIR) :void {
+        this._nextDir = dir;
     }
 
     public move(): Cell {

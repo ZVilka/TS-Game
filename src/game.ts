@@ -1,6 +1,6 @@
-import Pacman, { DIR } from "./pacman.js";
-import Monster, { AXIS } from "./monster.js";
-import Cell, { CELLTYPE } from "./cell.js";
+import Pacman, {DIR} from "./pacman.js";
+import Monster from "./monster.js";
+import Cell, {CELLTYPE} from "./cell.js";
 
 const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 wfffffmfffffffwwfffffffffffffw
@@ -92,16 +92,16 @@ export default class Game {
     private onKeydown(event: KeyboardEvent) {
         switch(event.key) {
             case "ArrowUp":
-                this.pacman.direction = DIR.Up;
+                this.pacman.setNextDirection(DIR.Up);
                 break;
             case "ArrowDown":
-                this.pacman.direction = DIR.Down;
+                this.pacman.setNextDirection(DIR.Down);
                 break;
             case "ArrowLeft":
-                this.pacman.direction = DIR.Left;
+                this.pacman.setNextDirection(DIR.Left);
                 break;
             case "ArrowRight":
-                this.pacman.direction = DIR.Right;
+                this.pacman.setNextDirection(DIR.Right);
                 break;
             case " " || "Spacebar":
                 if (!this.isOver)
@@ -196,6 +196,7 @@ export default class Game {
             return;
         }
 
+        this.pacman.updateDirection();
         let prevPacCell = this.pacman.move();
         prevPacCell.draw();
         this.pacman.draw();

@@ -12,6 +12,7 @@ export default class Pacman {
         this.x = x;
         this.y = y;
         this._direction = dir;
+        this._nextDir = dir;
         this._ctx = ctx;
         this._size = size;
         this._game = game;
@@ -21,12 +22,16 @@ export default class Pacman {
             this.draw();
         }.bind(this);
     }
-    set direction(value) {
-        let destinationCell = this.getDestinationCell(value);
+    updateDirection() {
+        let destinationCell = this.getDestinationCell(this._nextDir);
         if (destinationCell.type !== CELLTYPE.Wall) {
-            this._direction = value;
+            this._direction = this._nextDir;
             this.setRotation();
         }
+        this._nextDir = this._direction;
+    }
+    setNextDirection(dir) {
+        this._nextDir = dir;
     }
     move() {
         let prevCell = this._game.cellArray[this.x][this.y];
