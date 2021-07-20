@@ -43,6 +43,6 @@ export default class Pacman implements IAgent {
     }
 
     public draw(): void {
-        this._ctx.drawImage(this._image, this.x, this.y, 20, 20);
+        this._ctx.drawImage(this._image, this.x*20, this.y*20, 20, 20);
     }
 }
