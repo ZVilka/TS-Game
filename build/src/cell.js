@@ -74,8 +74,8 @@ export default class Cell {
                 break;
             }
             case CELLTYPE.Wall: {
-                this._drawRectangle("black");
-                // this._drawImage('src/assets/img/wall.svg', this._cellSize);
+                this._drawRectangle("MediumBlue");
+                this._drawImage('src/assets/img/wall.svg', this._cellSize);
                 break;
             }
             default: {

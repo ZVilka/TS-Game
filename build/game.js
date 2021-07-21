@@ -1,66 +1,69 @@
 import Pacman, { DIR } from "./pacman.js";
 import Monster from "./monster.js";
 import Cell, { CELLTYPE } from "./cell.js";
-// const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-// wfffffmfffffffwwfffffffffffffw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
-// wffffffffffwwfwwfwwffffffffffw
-// wfwwwwwfwwffffffffffwwmwwwwwfw
-// wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
-// wfffffffwwfwwwwwwwwfwwfffffffw
-// wfwwwwwfwwffffwwffffwwfwwwwwfw
-// wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
-// wfffffffwwwwwfwwfwwwwwfffffffw
-// wwwwwwwfffffffffffmffffwwwwwww
-// wwwwwwwfwwfwwwffwwwfwwfwwwwwww
-// wwwwwwwfwwfwffffffwfwwfwwwwwww
-// wwwwwwwfwwfwffffffwfwwfwwwwwww
-// wfffffffwwfwffffffwfwwfffffffw
-// wfwwwwwfwwfwffffffwfwwfwwwwwfw
-// wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
-// wffffwwfwwffffffffffwwfwwffffw
-// wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-// wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-// wfffffffffffffwwfffmfffffffffw
-// wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-// wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-// wfwwffffffffffwwffffffffffwwfw
-// wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
-// wpwwffffmfffffffffffffffffwwfw
-// wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
+//import QLearner from "../lib/q-learning.js";
+//let ql = require("../lib/q-learning.js")
+//import * as QLearning from "../lib/"
 const level1 = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-weeeeeeeeeeeeewweeeeeeeeeefmfw
-wewwwwwewwwwwewwewwwwwewwwwwew
-wewwwwwewwwwwewwewwwwwewwwwwew
-wewwwwwewwwwwewwewwwwwewwwwwew
-wewwwwwewwwwwewwewwwwwewwwwwew
-weeeeeeeeeewwewwewweeeeeeeeeew
-wewwwwwewweeeeeeeeeewwewwwwwew
-wewwwwwewwewwwwwwwwewwewwwwwew
-weeeeeeewwewwwwwwwwewweeeeeeew
-wewwwwwewweeeewweeeewwewwwwwew
-wewwwwwewwwwwewwewwwwwewwwwwew
-weeeeeeewwwwwewwewwwwweeeeeeew
-wwwwwwweeeeeeeeeeeeeeeewwwwwww
-wwwwwwwewwewwweewwwewwewwwwwww
-wwwwwwwewweweeeeeewewwewwwwwww
-wwwwwwwewweweeeeeewewwewwwwwww
-weeeeeeewweweeeeeewewweeeeeeew
-wewwwwwewweweeeeeewewwewwwwwew
-wewwwwwewwewwweewwwewwewwwwwew
-weeeewwewweeeeeeeeeewwewweeeew
-wwwwewwewwewwwwwwwwewwewwewwww
-wwwwewwewwewwwwwwwwewwewwewwww
-weeeeeeeeeeeeewweeeeeeeeeeeeew
-wewwwwwwwwwwwewwewwwwwwwwwwwew
-wewwwwwwwwwwwewwewwwwwwwwwwwew
-wewweeeeeeeeeewweeeeeeeeeewwew
-wewwewwwwwwwwewwewwwwwwwwewwew
-wpwweeeeeeeeeeeeeeeeeeeeeewwew
+wfffffmfffffffwwfffffffffffffw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
+wffffffffffwwfwwfwwffffffffffw
+wfwwwwwfwwffffffffffwwmwwwwwfw
+wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
+wfffffffwwfwwwwwwwwfwwfffffffw
+wfwwwwwfwwffffwwffffwwfwwwwwfw
+wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
+wfffffffwwwwwfwwfwwwwwfffffffw
+wwwwwwwfffffffffffmffffwwwwwww
+wwwwwwwfwwfwwwffwwwfwwfwwwwwww
+wwwwwwwfwwfwffffffwfwwfwwwwwww
+wwwwwwwfwwfwffffffwfwwfwwwwwww
+wfffffffwwfwffffffwfwwfffffffw
+wfwwwwwfwwfwffffffwfwwfwwwwwfw
+wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
+wffffwwfwwffffffffffwwfwwffffw
+wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+wfffffffffffffwwfffmfffffffffw
+wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+wfwwffffffffffwwffffffffffwwfw
+wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
+wpwwffffmfffffffffffffffffwwfw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
+// const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+// weeeeeeeeeeeeewweeeeeeeeeefmfw
+// wewwwwwewwwwwewwewwwwwewwwwwew
+// wewwwwwewwwwwewwewwwwwewwwwwew
+// wewwwwwewwwwwewwewwwwwewwwwwew
+// wewwwwwewwwwwewwewwwwwewwwwwew
+// weeeeeeeeeewwewwewweeeeeeeeeew
+// wewwwwwewweeeeeeeeeewwewwwwwew
+// wewwwwwewwewwwwwwwwewwewwwwwew
+// weeeeeeewwewwwwwwwwewweeeeeeew
+// wewwwwwewweeeewweeeewwewwwwwew
+// wewwwwwewwwwwewwewwwwwewwwwwew
+// weeeeeeewwwwwewwewwwwweeeeeeew
+// wwwwwwweeeeeeeeeeeeeeeewwwwwww
+// wwwwwwwewwewwweewwwewwewwwwwww
+// wwwwwwwewweweeeeeewewwewwwwwww
+// wwwwwwwewweweeeeeewewwewwwwwww
+// weeeeeeewweweeeeeewewweeeeeeew
+// wewwwwwewweweeeeeewewwewwwwwew
+// wewwwwwewwewwweewwwewwewwwwwew
+// weeeewwewweeeeeeeeeewwewweeeew
+// wwwwewwewwewwwwwwwwewwewwewwww
+// wwwwewwewwewwwwwwwwewwewwewwww
+// weeeeeeeeeeeeewweeeeeeeeeeeeew
+// wewwwwwwwwwwwewwewwwwwwwwwwwew
+// wewwwwwwwwwwwewwewwwwwwwwwwwew
+// wewweeeeeeeeeewweeeeeeeeeewwew
+// wewwewwwwwwwwewwewwwwwwwwewwew
+// wpwweeeeeeeeeeeeeeeeeeeeeewwew
+// wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 const levelsArray = [level1];
 export default class Game {
     constructor(w, h, speed) {

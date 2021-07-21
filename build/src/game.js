@@ -1,12 +1,7 @@
-import Pacman, {DIR} from "./pacman.js";
+import Pacman, { DIR } from "./pacman.js";
 import Monster from "./monster.js";
-import Cell, {CELLTYPE} from "./cell.js";
-//import QLearner from "../lib/q-learning.js";
-//let ql = require("../lib/q-learning.js")
-//import QL from "../lib/q-learning.js";
-import QLearner from "../lib/q-learning.js";
-
-const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+import Cell, { CELLTYPE } from "./cell.js";
+const level1 = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 wfffffmfffffffwwfffffffffffffw
 wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
 wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
@@ -36,7 +31,6 @@ wfwwffffffffffwwffffffffffwwfw
 wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
 wpwwffffmfffffffffffffffffwwfw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
-
 // const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 // weeeeeeeeeeeeewweeeeeeeeeefmfw
 // wewwwwwewwwwwewwewwwwwewwwwwew
@@ -67,66 +61,47 @@ wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 // wewwewwwwwwwwewwewwwwwwwwewwew
 // wpwweeeeeeeeeeeeeeeeeeeeeewwew
 // wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
-
 const levelsArray = [level1];
-
 export default class Game {
-    width: number;
-    height: number;
-    learner: QLearner;
-
-    score: number = 0;
-    remainingFood: number = 0;
-    isStarted: boolean = false;
-    gameSpeed: number = 100;
-    currentLevel: number = 0;
-    isOver: boolean = false;
-
-    pacman: Pacman;
-    monstersArray: Monster[] = [];
-    cellArray: Cell[][] = [];
-
-    private _canvas: HTMLCanvasElement;
-    private readonly _context: CanvasRenderingContext2D;
-
-    constructor(w: number, h: number, speed: number) {
+    constructor(w, h, speed) {
+        this.score = 0;
+        this.remainingFood = 0;
+        this.isStarted = false;
+        this.gameSpeed = 100;
+        this.currentLevel = 0;
+        this.isOver = false;
+        this.monstersArray = [];
+        this.cellArray = [];
         this.width = w;
         this.height = h;
         this.gameSpeed = speed;
-
-        this._canvas = document.getElementById("field") as HTMLCanvasElement;
+        this._canvas = document.getElementById("field");
         this._context = this._canvas.getContext("2d");
         document.addEventListener("keydown", this._onKeydown.bind(this));
-
         this.currentLevel = 1;
-
         this._loadLevel(this.currentLevel);
     }
-
-    private _startGame(): void {
+    _startGame() {
         if (!this.isStarted) {
             this.isStarted = true;
             this._update();
             setTimeout(() => this._updateTimer(), this.gameSpeed);
         }
     }
-
-    private _stopGame(): void {
+    _stopGame() {
         if (this.isStarted) {
             this.isStarted = false;
         }
     }
-
-    private _updateTimer(): void {
+    _updateTimer() {
         if (this.isStarted) {
             this._update();
             setTimeout(() => this._updateTimer(), this.gameSpeed);
         }
     }
-
     // TODO: Действия с клавиатуры
-    private _onKeydown(event: KeyboardEvent) {
-        switch(event.key) {
+    _onKeydown(event) {
+        switch (event.key) {
             case "ArrowUp":
                 this.pacman.setNextDirection(DIR.Up);
                 break;
@@ -151,8 +126,7 @@ export default class Game {
                 break;
         }
     }
-
-    private _resetGame(): void {
+    _resetGame() {
         this._stopGame();
         this.isOver = false;
         this.pacman = undefined;
@@ -161,9 +135,8 @@ export default class Game {
         this.score = 0;
         this.remainingFood = 0;
     }
-
     // TODO: Добавить размеры объектов в конструкторы, weight клетки
-    private _loadLevel(lvlNumber: number): void {
+    _loadLevel(lvlNumber) {
         let objectSize = 20;
         let level = levelsArray[lvlNumber - 1];
         let row = 0;
@@ -174,7 +147,7 @@ export default class Game {
         }
         for (let i = 0; i < level.length; i++) {
             let col = symbolCounter % this.width;
-            switch(level.charAt(i)) {
+            switch (level.charAt(i)) {
                 case "\n":
                     row++;
                     break;
@@ -211,11 +184,9 @@ export default class Game {
                     break;
             }
         }
-
         for (let monster of this.monstersArray) {
             monster.initDirection();
         }
-
         for (let arrCell of this.cellArray) {
             for (let cell of arrCell) {
                 cell.draw();
@@ -225,15 +196,13 @@ export default class Game {
         }
         this.pacman.draw();
     }
-
-    private _update(): void {
+    _update() {
         if (this.remainingFood === 0) {
             alert("Level Finished");
             this.isOver = true;
             this._stopGame();
             return;
         }
-
         this.pacman.updateDirection();
         let prevPacCell = this.pacman.move();
         for (let neigh of this.cellArray[this.pacman.x][this.pacman.y].cellNeighbours) {
@@ -242,7 +211,6 @@ export default class Game {
         prevPacCell.draw();
         this.pacman.draw();
         this._checkDeath();
-
         for (let monster of this.monstersArray) {
             let prevCell = monster.move();
             prevCell.draw();
@@ -250,24 +218,20 @@ export default class Game {
             this._checkDeathForMonster(monster);
         }
     }
-
-    protected _checkDeath() {
+    _checkDeath() {
         for (let monster of this.monstersArray) {
             this._checkDeathForMonster(monster);
         }
     }
-
-    protected _checkDeathForMonster(monster:Monster) {
+    _checkDeathForMonster(monster) {
         if (this.pacman.x === monster.x && this.pacman.y === monster.y) {
             setTimeout(() => alert("Game Over"), 100);
             this.isOver = true;
             this._stopGame();
         }
     }
-
-    public getRandomNumber(min: number, max: number) {
+    getRandomNumber(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 }
-
 const game = new Game(30, 30, 200);
