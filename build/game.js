@@ -45,32 +45,32 @@ export default class Game {
         this.width = w;
         this.height = h;
         this.gameSpeed = speed;
-        this.canvas = document.getElementById("field");
-        this.context = this.canvas.getContext("2d");
-        document.addEventListener("keydown", this.onKeydown.bind(this));
+        this._canvas = document.getElementById("field");
+        this._context = this._canvas.getContext("2d");
+        document.addEventListener("keydown", this._onKeydown.bind(this));
         this.currentLevel = 1;
-        this.loadLevel(this.currentLevel);
+        this._loadLevel(this.currentLevel);
     }
-    startGame() {
+    _startGame() {
         if (!this.isStarted) {
             this.isStarted = true;
-            this.update();
-            setTimeout(() => this.updateTimer(), this.gameSpeed);
+            this._update();
+            setTimeout(() => this._updateTimer(), this.gameSpeed);
         }
     }
-    stopGame() {
+    _stopGame() {
         if (this.isStarted) {
             this.isStarted = false;
         }
     }
-    updateTimer() {
+    _updateTimer() {
         if (this.isStarted) {
-            this.update();
-            setTimeout(() => this.updateTimer(), this.gameSpeed);
+            this._update();
+            setTimeout(() => this._updateTimer(), this.gameSpeed);
         }
     }
     // TODO: Действия с клавиатуры
-    onKeydown(event) {
+    _onKeydown(event) {
         switch (event.key) {
             case "ArrowUp":
                 this.pacman.setNextDirection(DIR.Up);
@@ -86,18 +86,18 @@ export default class Game {
                 break;
             case " " || "Spacebar":
                 if (!this.isOver)
-                    this.startGame();
+                    this._startGame();
                 else {
-                    this.resetGame();
-                    this.loadLevel(this.currentLevel);
+                    this._resetGame();
+                    this._loadLevel(this.currentLevel);
                 }
                 break;
             default:
                 break;
         }
     }
-    resetGame() {
-        this.stopGame();
+    _resetGame() {
+        this._stopGame();
         this.isOver = false;
         this.pacman = undefined;
         this.cellArray = [];
@@ -106,12 +106,12 @@ export default class Game {
         this.remainingFood = 0;
     }
     // TODO: Добавить размеры объектов в конструкторы, weight клетки
-    loadLevel(lvlNumber) {
+    _loadLevel(lvlNumber) {
         let objectSize = 20;
         let level = levelsArray[lvlNumber - 1];
         let row = 0;
         let symbolCounter = 0;
-        this.resetGame();
+        this._resetGame();
         for (let i = 0; i < this.width; i++) {
             this.cellArray[i] = [];
         }
@@ -122,33 +122,33 @@ export default class Game {
                     row++;
                     break;
                 case "e":
-                    let emptyCell = new Cell(col, row, CELLTYPE.Empty, this.context, objectSize);
+                    let emptyCell = new Cell(col, row, CELLTYPE.Empty, this._context, objectSize);
                     this.cellArray[col][row] = emptyCell;
                     symbolCounter++;
                     break;
                 case "w":
-                    let wallCell = new Cell(col, row, CELLTYPE.Wall, this.context, objectSize);
+                    let wallCell = new Cell(col, row, CELLTYPE.Wall, this._context, objectSize);
                     this.cellArray[col][row] = wallCell;
                     symbolCounter++;
                     break;
                 case "f":
-                    let foodCell = new Cell(col, row, CELLTYPE.Food, this.context, objectSize);
+                    let foodCell = new Cell(col, row, CELLTYPE.Food, this._context, objectSize);
                     this.cellArray[col][row] = foodCell;
                     this.remainingFood++;
                     symbolCounter++;
                     break;
                 case "m":
-                    let foodCellForMonster = new Cell(col, row, CELLTYPE.Food, this.context, objectSize);
+                    let foodCellForMonster = new Cell(col, row, CELLTYPE.Food, this._context, objectSize);
                     this.cellArray[col][row] = foodCellForMonster;
                     this.remainingFood++;
-                    let monsterAgent = new Monster(col, row, this.context, this, objectSize);
+                    let monsterAgent = new Monster(col, row, this._context, this, objectSize);
                     this.monstersArray.push(monsterAgent);
                     symbolCounter++;
                     break;
                 case "p":
-                    let emptyCellPacman = new Cell(col, row, CELLTYPE.Empty, this.context, objectSize);
+                    let emptyCellPacman = new Cell(col, row, CELLTYPE.Empty, this._context, objectSize);
                     this.cellArray[col][row] = emptyCellPacman;
-                    let pacman = new Pacman(col, row, DIR.Up, this.context, this, objectSize);
+                    let pacman = new Pacman(col, row, DIR.Up, this._context, this, objectSize);
                     this.pacman = pacman;
                     symbolCounter++;
                     break;
@@ -164,39 +164,39 @@ export default class Game {
         }
         this.pacman.draw();
     }
-    update() {
+    _update() {
         if (this.remainingFood === 0) {
             alert("Level Finished");
             this.isOver = true;
-            this.stopGame();
+            this._stopGame();
             return;
         }
         this.pacman.updateDirection();
         let prevPacCell = this.pacman.move();
         prevPacCell.draw();
         this.pacman.draw();
-        this.checkDeath();
+        this._checkDeath();
         for (let monster of this.monstersArray) {
             let prevCell = monster.move();
             prevCell.draw();
             monster.draw();
-            this.checkDeathForMonster(monster);
+            this._checkDeathForMonster(monster);
         }
     }
-    checkDeath() {
+    _checkDeath() {
         for (let monster of this.monstersArray) {
-            this.checkDeathForMonster(monster);
+            this._checkDeathForMonster(monster);
         }
     }
-    checkDeathForMonster(monster) {
+    _checkDeathForMonster(monster) {
         if (this.pacman.x === monster.x && this.pacman.y === monster.y) {
             setTimeout(() => alert("Game Over"), 100);
             this.isOver = true;
-            this.stopGame();
+            this._stopGame();
         }
     }
     getRandomNumber(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 }
-const game = new Game(30, 30, 500);
+const game = new Game(30, 30, 200);

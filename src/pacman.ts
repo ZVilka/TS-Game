@@ -18,16 +18,16 @@ export default class Pacman implements IAgent {
     private _direction: DIR;
     private _nextDir: DIR;
     private readonly _image: HTMLImageElement;
-    private _ctx: CanvasRenderingContext2D;
-    private readonly _size: number;
+    private _context: CanvasRenderingContext2D;
+    private readonly _cellSize: number;
     private readonly _game: Game;
     constructor(x: number, y: number, dir: DIR, ctx: CanvasRenderingContext2D, game: Game, size: number = 20) {
         this.x = x;
         this.y = y;
         this._direction = dir;
         this._nextDir = dir;
-        this._ctx = ctx;
-        this._size = size;
+        this._context = ctx;
+        this._cellSize = size;
         this._game = game;
         this._image = new Image();
         this._image.src = "src/assets/img/pacman.png";
@@ -40,7 +40,7 @@ export default class Pacman implements IAgent {
         let destinationCell = this.getDestinationCell(this._nextDir);
         if (destinationCell.type !== CELLTYPE.Wall) {
             this._direction = this._nextDir;
-            this.setRotation();
+            this._setRotation();
         }
         this._nextDir = this._direction;
     }
@@ -57,17 +57,17 @@ export default class Pacman implements IAgent {
             case CELLTYPE.Wall:
                 break;
             case CELLTYPE.Food:
-                this.makeAStep();
+                this._makeAStep();
                 this.eatFood(destinationCell);
                 break;
             default:
-                this.makeAStep();
+                this._makeAStep();
                 break;
         }
         return prevCell;
     }
 
-    protected makeAStep() :void {
+    protected _makeAStep() :void {
         switch (this._direction) {
             case DIR.Up:
                 this.y--;
@@ -110,20 +110,20 @@ export default class Pacman implements IAgent {
     }
 
     public draw(): void {
-        let centerX = this.x * this._size + this._size/2;
-        let centerY = this.y * this._size + this._size/2;
+        let centerX = this.x * this._cellSize + this._cellSize/2;
+        let centerY = this.y * this._cellSize + this._cellSize/2;
 
         let radRotation = this._rotation * Math.PI/180
-        this._ctx.translate(centerX, centerY);
-        this._ctx.rotate(radRotation);
+        this._context.translate(centerX, centerY);
+        this._context.rotate(radRotation);
 
-        this._ctx.drawImage(this._image, (-this._size/2), (-this._size/2), this._size, this._size);
+        this._context.drawImage(this._image, (-this._cellSize/2), (-this._cellSize/2), this._cellSize, this._cellSize);
 
-        this._ctx.rotate(-radRotation);
-        this._ctx.translate(-centerX, -centerY);
+        this._context.rotate(-radRotation);
+        this._context.translate(-centerX, -centerY);
     }
 
-    protected setRotation() :void {
+    protected _setRotation() :void {
         switch(this._direction) {
             case DIR.Up:
                 this._rotation = 0;

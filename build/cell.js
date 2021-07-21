@@ -10,8 +10,8 @@ export default class Cell {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.context = context;
-        this.sizeCell = sizeCell;
+        this._context = context;
+        this._cellSize = sizeCell;
     }
     draw() {
         switch (this.type) {
@@ -21,12 +21,12 @@ export default class Cell {
             }
             case CELLTYPE.Food: {
                 this._drawRectangle("MediumBlue");
-                this._drawCircle('white');
+                this._drawCircle('#cbcbd0');
                 break;
             }
             case CELLTYPE.Wall: {
                 this._drawRectangle("MediumBlue");
-                this._drawImage('src/assets/img/wall.svg', this.sizeCell);
+                this._drawImage('src/assets/img/wall.svg', this._cellSize);
                 break;
             }
             default: {
@@ -35,24 +35,24 @@ export default class Cell {
         }
     }
     _drawRectangle(color) {
-        this.context.fillStyle = color;
-        this.context.fillRect(this.x * this.sizeCell, this.y * this.sizeCell, this.sizeCell, this.sizeCell);
+        this._context.fillStyle = color;
+        this._context.fillRect(this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
     }
     _drawCircle(color) {
-        const middleOfCellSize = this.sizeCell / 2;
-        this.context.beginPath();
-        this.context.arc(this.x * this.sizeCell + middleOfCellSize, this.y * this.sizeCell + middleOfCellSize, middleOfCellSize / 2, 0, 2 * Math.PI, false);
-        this.context.fillStyle = color;
-        this.context.fill();
-        this.context.lineWidth = 1;
-        this.context.strokeStyle = color;
-        this.context.stroke();
+        const middleOfCellSize = this._cellSize / 2;
+        this._context.beginPath();
+        this._context.arc(this.x * this._cellSize + middleOfCellSize, this.y * this._cellSize + middleOfCellSize, middleOfCellSize / 2, 0, 2 * Math.PI, false);
+        this._context.fillStyle = color;
+        this._context.fill();
+        this._context.lineWidth = 1;
+        this._context.strokeStyle = color;
+        this._context.stroke();
     }
     _drawImage(url, size) {
         let img = new Image();
         img.src = url;
         img.onload = () => {
-            this.context.drawImage(img, this.x * this.sizeCell, this.y * this.sizeCell, size, size);
+            this._context.drawImage(img, this.x * this._cellSize, this.y * this._cellSize, size, size);
         };
     }
 }

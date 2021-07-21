@@ -11,50 +11,50 @@ export enum AXIS {
 export default class Monster implements IAgent {
     x: number;
     y: number;
-    axis: AXIS;
-    direction: DIR;
-    game: Game;
-    isMoving: boolean;
+    private _axis: AXIS;
+    private _direction: DIR;
+    private _game: Game;
+    private _isMoving: boolean;
 
-    image: HTMLImageElement;
-    context: CanvasRenderingContext2D;
-    cellSize: number;
+    private _image: HTMLImageElement;
+    private _context: CanvasRenderingContext2D;
+    private readonly _cellSize: number;
 
     constructor(x: number, y: number,
                 context: CanvasRenderingContext2D,
                 game: Game,
-                cellSize:number) {
+                cellSize:number = 20) {
         this.x = x;
         this.y = y;
-        this.context = context;
-        this.cellSize = cellSize;
-        this.game = game;
-        this.isMoving = true;
+        this._context = context;
+        this._cellSize = cellSize;
+        this._game = game;
+        this._isMoving = true;
 
-        this.setImage();
+        this._setImage();
     }
 
     public move(): Cell {
-        let lastCellMonster = this.game.cellArray[this.x][this.y];
+        let lastCellMonster = this._game.cellArray[this.x][this.y];
 
         let destinationCell = this.getDestinationCell();
 
-        if (this.isMoving) {
+        if (this._isMoving) {
 
             switch (destinationCell.type) {
                 case CELLTYPE.Wall:
-                    this.changeDirection();
+                    this._changeDirection();
                     break;
                 default:
-                    this.makeAStep();
+                    this._makeAStep();
                     break;
             }
         }
         return lastCellMonster;
     }
 
-    protected makeAStep() :void {
-        switch (this.direction) {
+    protected _makeAStep() :void {
+        switch (this._direction) {
             case DIR.Up:
                 this.y--;
                 break;
@@ -72,12 +72,12 @@ export default class Monster implements IAgent {
         }
     }
 
-    protected setImage() :void {
-        this.image = new Image();
-        this.image.width = this.cellSize;
-        this.image.height = this.cellSize;
-        this.image.src = "src/assets/img/monster.svg";
-        this.image.onload = function(this : Monster) {
+    protected _setImage() :void {
+        this._image = new Image();
+        this._image.width = this._cellSize;
+        this._image.height = this._cellSize;
+        this._image.src = "src/assets/img/monster.svg";
+        this._image.onload = function(this : Monster) {
             this.draw();
         }.bind(this);
     }
@@ -86,37 +86,37 @@ export default class Monster implements IAgent {
         let isHorAllowed : boolean = false;
         let isVertAllowed : boolean = false;
 
-        if (this.game.cellArray[this.x - 1][this.y].type === CELLTYPE.Food
-        || this.game.cellArray[this.x + 1][this.y].type === CELLTYPE.Food) {
+        if (this._game.cellArray[this.x - 1][this.y].type === CELLTYPE.Food
+        || this._game.cellArray[this.x + 1][this.y].type === CELLTYPE.Food) {
             isHorAllowed = true;
-        } else if (this.game.cellArray[this.x][this.y + 1].type === CELLTYPE.Food
-            || this.game.cellArray[this.x][this.y - 1].type === CELLTYPE.Food) {
+        } else if (this._game.cellArray[this.x][this.y + 1].type === CELLTYPE.Food
+            || this._game.cellArray[this.x][this.y - 1].type === CELLTYPE.Food) {
             isVertAllowed = true;
         }
 
         if (!isHorAllowed && !isVertAllowed) {
-            this.isMoving = false;
+            this._isMoving = false;
             return;
         }
 
         if (isHorAllowed) {
             if (isVertAllowed) {
-                this.axis = this.getRandomAxis();
+                this._axis = this._getRandomAxis();
             } else {
-                this.axis = AXIS.Hor;
+                this._axis = AXIS.Hor;
             }
         } else {
-            this.axis = AXIS.Vert;
+            this._axis = AXIS.Vert;
         }
 
-        this.setDirection();
+        this._setDirection();
     }
 
-    protected setDirection() : void {
-        if (this.axis === AXIS.Hor) {
-            this.direction = DIR.Right;
-        } else if (this.axis === AXIS.Vert) {
-            this.direction = DIR.Up;
+    protected _setDirection() : void {
+        if (this._axis === AXIS.Hor) {
+            this._direction = DIR.Right;
+        } else if (this._axis === AXIS.Vert) {
+            this._direction = DIR.Up;
         }
     }
 
@@ -124,7 +124,7 @@ export default class Monster implements IAgent {
         let newX = this.x;
         let newY = this.y;
 
-        switch(this.direction) {
+        switch(this._direction) {
             case DIR.Up:
                 newY--;
                 break;
@@ -140,27 +140,27 @@ export default class Monster implements IAgent {
             default:
                 throw "Invalid direction!";
         }
-        return this.game.cellArray[newX][newY];
+        return this._game.cellArray[newX][newY];
     }
 
-    protected getRandomAxis() : AXIS {
-        let random = this.game.getRandomNumber(0, 1);
+    protected _getRandomAxis() : AXIS {
+        let random = this._game.getRandomNumber(0, 1);
         return random ? AXIS.Hor : AXIS.Vert;
     }
 
-    protected changeDirection() :void {
-        switch (this.direction) {
+    protected _changeDirection() :void {
+        switch (this._direction) {
             case DIR.Up:
-                this.direction = DIR.Down;
+                this._direction = DIR.Down;
                 break;
             case DIR.Down:
-                this.direction = DIR.Up;
+                this._direction = DIR.Up;
                 break;
             case DIR.Left:
-                this.direction = DIR.Right;
+                this._direction = DIR.Right;
                 break;
             case DIR.Right:
-                this.direction = DIR.Left;
+                this._direction = DIR.Left;
                 break;
             default:
                 break;
@@ -168,8 +168,8 @@ export default class Monster implements IAgent {
     }
 
     public draw(x:number = this.x, y:number = this.y): void {
-        this.context.drawImage(this.image,
-            x * this.cellSize, y * this.cellSize,
-            this.cellSize, this.cellSize);
+        this._context.drawImage(this._image,
+            x * this._cellSize, y * this._cellSize,
+            this._cellSize, this._cellSize);
     }
 }

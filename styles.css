@@ -1,3 +1,18 @@
+body {
+    background-color: #222a5e;
+}
+
 .field {
+    display: block;
     border: black 2px solid;
+    width: max-content;
+    margin: 50px auto;
+}
+
+.text {
+    color: whitesmoke;
+    width: max-content;
+    margin: 50px auto;
+    font-size: 24px;
+    font-family: Lucida Console;
 }

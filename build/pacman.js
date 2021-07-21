@@ -13,8 +13,8 @@ export default class Pacman {
         this.y = y;
         this._direction = dir;
         this._nextDir = dir;
-        this._ctx = ctx;
-        this._size = size;
+        this._context = ctx;
+        this._cellSize = size;
         this._game = game;
         this._image = new Image();
         this._image.src = "src/assets/img/pacman.png";
@@ -26,7 +26,7 @@ export default class Pacman {
         let destinationCell = this.getDestinationCell(this._nextDir);
         if (destinationCell.type !== CELLTYPE.Wall) {
             this._direction = this._nextDir;
-            this.setRotation();
+            this._setRotation();
         }
         this._nextDir = this._direction;
     }
@@ -40,16 +40,16 @@ export default class Pacman {
             case CELLTYPE.Wall:
                 break;
             case CELLTYPE.Food:
-                this.makeAStep();
+                this._makeAStep();
                 this.eatFood(destinationCell);
                 break;
             default:
-                this.makeAStep();
+                this._makeAStep();
                 break;
         }
         return prevCell;
     }
-    makeAStep() {
+    _makeAStep() {
         switch (this._direction) {
             case DIR.Up:
                 this.y--;
@@ -89,16 +89,16 @@ export default class Pacman {
         return this._game.cellArray[newX][newY];
     }
     draw() {
-        let centerX = this.x * this._size + this._size / 2;
-        let centerY = this.y * this._size + this._size / 2;
+        let centerX = this.x * this._cellSize + this._cellSize / 2;
+        let centerY = this.y * this._cellSize + this._cellSize / 2;
         let radRotation = this._rotation * Math.PI / 180;
-        this._ctx.translate(centerX, centerY);
-        this._ctx.rotate(radRotation);
-        this._ctx.drawImage(this._image, (-this._size / 2), (-this._size / 2), this._size, this._size);
-        this._ctx.rotate(-radRotation);
-        this._ctx.translate(-centerX, -centerY);
+        this._context.translate(centerX, centerY);
+        this._context.rotate(radRotation);
+        this._context.drawImage(this._image, (-this._cellSize / 2), (-this._cellSize / 2), this._cellSize, this._cellSize);
+        this._context.rotate(-radRotation);
+        this._context.translate(-centerX, -centerY);
     }
-    setRotation() {
+    _setRotation() {
         switch (this._direction) {
             case DIR.Up:
                 this._rotation = 0;
