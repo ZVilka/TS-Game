@@ -1,35 +1,65 @@
 import Pacman, { DIR } from "./pacman.js";
 import Monster from "./monster.js";
 import Cell, { CELLTYPE } from "./cell.js";
+// const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+// wfffffmfffffffwwfffffffffffffw
+// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+// wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
+// wffffffffffwwfwwfwwffffffffffw
+// wfwwwwwfwwffffffffffwwmwwwwwfw
+// wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
+// wfffffffwwfwwwwwwwwfwwfffffffw
+// wfwwwwwfwwffffwwffffwwfwwwwwfw
+// wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
+// wfffffffwwwwwfwwfwwwwwfffffffw
+// wwwwwwwfffffffffffmffffwwwwwww
+// wwwwwwwfwwfwwwffwwwfwwfwwwwwww
+// wwwwwwwfwwfwffffffwfwwfwwwwwww
+// wwwwwwwfwwfwffffffwfwwfwwwwwww
+// wfffffffwwfwffffffwfwwfffffffw
+// wfwwwwwfwwfwffffffwfwwfwwwwwfw
+// wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
+// wffffwwfwwffffffffffwwfwwffffw
+// wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+// wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+// wfffffffffffffwwfffmfffffffffw
+// wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+// wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+// wfwwffffffffffwwffffffffffwwfw
+// wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
+// wpwwffffmfffffffffffffffffwwfw
+// wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 const level1 = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-wfffffmfffffffwwfffffffffffffw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
-wffffffffffwwfwwfwwffffffffffw
-wfwwwwwfwwffffffffffwwmwwwwwfw
-wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
-wfffffffwwfwwwwwwwwfwwfffffffw
-wfwwwwwfwwffffwwffffwwfwwwwwfw
-wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
-wfffffffwwwwwfwwfwwwwwfffffffw
-wwwwwwwfffffffffffmffffwwwwwww
-wwwwwwwfwwfwwwffwwwfwwfwwwwwww
-wwwwwwwfwwfwffffffwfwwfwwwwwww
-wwwwwwwfwwfwffffffwfwwfwwwwwww
-wfffffffwwfwffffffwfwwfffffffw
-wfwwwwwfwwfwffffffwfwwfwwwwwfw
-wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
-wffffwwfwwffffffffffwwfwwffffw
-wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-wfffffffffffffwwfffmfffffffffw
-wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-wfwwffffffffffwwffffffffffwwfw
-wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
-wpwwffffmfffffffffffffffffwwfw
+weeeeeeeeeeeeewweeeeeeeeeefmfw
+wewwwwwewwwwwewwewwwwwewwwwwew
+wewwwwwewwwwwewwewwwwwewwwwwew
+wewwwwwewwwwwewwewwwwwewwwwwew
+wewwwwwewwwwwewwewwwwwewwwwwew
+weeeeeeeeeewwewwewweeeeeeeeeew
+wewwwwwewweeeeeeeeeewwewwwwwew
+wewwwwwewwewwwwwwwwewwewwwwwew
+weeeeeeewwewwwwwwwwewweeeeeeew
+wewwwwwewweeeewweeeewwewwwwwew
+wewwwwwewwwwwewwewwwwwewwwwwew
+weeeeeeewwwwwewwewwwwweeeeeeew
+wwwwwwweeeeeeeeeeeeeeeewwwwwww
+wwwwwwwewwewwweewwwewwewwwwwww
+wwwwwwwewweweeeeeewewwewwwwwww
+wwwwwwwewweweeeeeewewwewwwwwww
+weeeeeeewweweeeeeewewweeeeeeew
+wewwwwwewweweeeeeewewwewwwwwew
+wewwwwwewwewwweewwwewwewwwwwew
+weeeewwewweeeeeeeeeewwewweeeew
+wwwwewwewwewwwwwwwwewwewwewwww
+wwwwewwewwewwwwwwwwewwewwewwww
+weeeeeeeeeeeeewweeeeeeeeeeeeew
+wewwwwwwwwwwwewwewwwwwwwwwwwew
+wewwwwwwwwwwwewwewwwwwwwwwwwew
+wewweeeeeeeeeewweeeeeeeeeewwew
+wewwewwwwwwwwewwewwwwwwwwewwew
+wpwweeeeeeeeeeeeeeeeeeeeeewwew
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 const levelsArray = [level1];
 export default class Game {
@@ -122,23 +152,23 @@ export default class Game {
                     row++;
                     break;
                 case "e":
-                    let emptyCell = new Cell(col, row, CELLTYPE.Empty, this._context, objectSize);
+                    let emptyCell = new Cell(col, row, CELLTYPE.Empty, this._context, this, objectSize);
                     this.cellArray[col][row] = emptyCell;
                     symbolCounter++;
                     break;
                 case "w":
-                    let wallCell = new Cell(col, row, CELLTYPE.Wall, this._context, objectSize);
+                    let wallCell = new Cell(col, row, CELLTYPE.Wall, this._context, this, objectSize);
                     this.cellArray[col][row] = wallCell;
                     symbolCounter++;
                     break;
                 case "f":
-                    let foodCell = new Cell(col, row, CELLTYPE.Food, this._context, objectSize);
+                    let foodCell = new Cell(col, row, CELLTYPE.Food, this._context, this, objectSize);
                     this.cellArray[col][row] = foodCell;
                     this.remainingFood++;
                     symbolCounter++;
                     break;
                 case "m":
-                    let foodCellForMonster = new Cell(col, row, CELLTYPE.Food, this._context, objectSize);
+                    let foodCellForMonster = new Cell(col, row, CELLTYPE.Food, this._context, this, objectSize);
                     this.cellArray[col][row] = foodCellForMonster;
                     this.remainingFood++;
                     let monsterAgent = new Monster(col, row, this._context, this, objectSize);
@@ -146,7 +176,7 @@ export default class Game {
                     symbolCounter++;
                     break;
                 case "p":
-                    let emptyCellPacman = new Cell(col, row, CELLTYPE.Empty, this._context, objectSize);
+                    let emptyCellPacman = new Cell(col, row, CELLTYPE.Empty, this._context, this, objectSize);
                     this.cellArray[col][row] = emptyCellPacman;
                     let pacman = new Pacman(col, row, DIR.Up, this._context, this, objectSize);
                     this.pacman = pacman;
@@ -160,6 +190,8 @@ export default class Game {
         for (let arrCell of this.cellArray) {
             for (let cell of arrCell) {
                 cell.draw();
+                if (cell.type !== CELLTYPE.Wall)
+                    cell.setNeighbours();
             }
         }
         this.pacman.draw();
@@ -173,6 +205,9 @@ export default class Game {
         }
         this.pacman.updateDirection();
         let prevPacCell = this.pacman.move();
+        for (let neigh of this.cellArray[this.pacman.x][this.pacman.y].cellNeighbours) {
+            neigh.setWeight();
+        }
         prevPacCell.draw();
         this.pacman.draw();
         this._checkDeath();

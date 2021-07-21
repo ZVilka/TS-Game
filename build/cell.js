@@ -5,13 +5,62 @@ export var CELLTYPE;
     CELLTYPE[CELLTYPE["Wall"] = 2] = "Wall";
 })(CELLTYPE || (CELLTYPE = {}));
 export default class Cell {
-    constructor(x, y, type, context, sizeCell = 20) {
+    constructor(x, y, type, context, game, sizeCell = 20) {
         this.weight = 0;
+        this.cellNeighbours = [];
         this.x = x;
         this.y = y;
         this.type = type;
         this._context = context;
         this._cellSize = sizeCell;
+        this._game = game;
+    }
+    setNeighbours() {
+        for (let x = -1; x <= 1; x++) {
+            for (let y = -1; y <= 1; y++) {
+                if (Math.abs(x) !== Math.abs(y) && !(x === 0 && y === 0))
+                    this.cellNeighbours.push(this._game.cellArray[this.x + x][this.y + y]);
+            }
+        }
+    }
+    setWeight() {
+        switch (this.type) {
+            case CELLTYPE.Empty: {
+                this.weight = this.getDistanceToFood();
+                break;
+            }
+            case CELLTYPE.Food: {
+                this.weight = 5;
+                break;
+            }
+            case CELLTYPE.Wall: {
+                this.weight = -1000;
+                break;
+            }
+            default: {
+                return;
+            }
+        }
+    }
+    getDistanceToFood() {
+        let queue = [];
+        queue.push(this);
+        let visited = new Map([[this, 0]]);
+        while (queue.length !== 0) {
+            let v = queue.shift();
+            for (let neighbour of v.cellNeighbours) {
+                if (neighbour.type === CELLTYPE.Wall)
+                    continue;
+                if (neighbour.type === CELLTYPE.Food) {
+                    return -(visited.get(v) + 1);
+                }
+                if (!visited.has(neighbour)) {
+                    queue.push(neighbour);
+                    visited.set(neighbour, visited.get(v) + 1);
+                }
+            }
+        }
+        return -1000;
     }
     draw() {
         switch (this.type) {
