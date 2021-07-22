@@ -1,3 +1,3 @@
-# Packman
+# Pacman
 
-Game
+Pacman game created with Typescript. Utilizes canvas.

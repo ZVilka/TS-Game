@@ -1,4 +1,5 @@
 import Game from './game.js'
+import IAgent from './IAgent.js';
 
 export enum CELLTYPE {
     Empty,
@@ -13,7 +14,7 @@ export default class Cell {
     weight: number = 0;
     private readonly _cellSize: number;
     private _game: Game;
-    cellNeighbours: Cell[] = [];
+    neighborArray: Cell[] = [];
 
     private _context: CanvasRenderingContext2D;
 
@@ -26,16 +27,21 @@ export default class Cell {
         this._game = game;
     }
 
-    public setNeighbours(): void {
+    public setNeighbors(): void {
         for (let x=-1; x <=1; x++) {
             for (let y=-1; y<=1; y++) {
                 if (Math.abs(x) !== Math.abs(y) && !( x=== 0 && y === 0))
-                    this.cellNeighbours.push(this._game.cellArray[this.x + x][this.y + y]);
+                    this.neighborArray.push(this._game.cellArray[this.x + x][this.y + y]);
             }
         }
     }
 
-    public setWeight() {
+    public setWeightForMonsterNeighbor() {
+        this.weight = -1000;
+    }
+
+
+    public setWeightForPacmanNeighbor() {
         switch (this.type) {
             case CELLTYPE.Empty: {
                 this.weight = this.getDistanceToFood();
@@ -61,14 +67,14 @@ export default class Cell {
         let visited = new Map<Cell, number>([[this, 0]]);
         while (queue.length !== 0) {
             let v = queue.shift();
-            for (let neighbour of v.cellNeighbours) {
-                if (neighbour.type === CELLTYPE.Wall) continue;
-                if (neighbour.type === CELLTYPE.Food) {
+            for (let neighbor of v.neighborArray) {
+                if (neighbor.type === CELLTYPE.Wall) continue;
+                if (neighbor.type === CELLTYPE.Food) {
                     return -(visited.get(v) + 1);
                 }
-                if (!visited.has(neighbour)) {
-                    queue.push(neighbour);
-                    visited.set(neighbour, visited.get(v) + 1);
+                if (!visited.has(neighbor)) {
+                    queue.push(neighbor);
+                    visited.set(neighbor, visited.get(v) + 1);
                 }
             }
         }

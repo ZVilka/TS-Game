@@ -220,7 +220,7 @@ export default class Game {
             for (let cell of arrCell) {
                 cell.draw();
                 if (cell.type !== CELLTYPE.Wall)
-                    cell.setNeighbours();
+                    cell.setNeighbors();
             }
         }
         this.pacman.draw();
@@ -236,18 +236,21 @@ export default class Game {
 
         this.pacman.updateDirection();
         let prevPacCell = this.pacman.move();
-        for (let neigh of this.cellArray[this.pacman.x][this.pacman.y].cellNeighbours) {
-            neigh.setWeight();
-        }
         prevPacCell.draw();
         this.pacman.draw();
         this._checkDeath();
+        for (let neigh of this.cellArray[this.pacman.x][this.pacman.y].neighborArray) {
+            neigh.setWeightForPacmanNeighbor();
+        }
 
         for (let monster of this.monstersArray) {
             let prevCell = monster.move();
             prevCell.draw();
             monster.draw();
             this._checkDeathForMonster(monster);
+            for (let neigh of this.cellArray[monster.x][monster.y].neighborArray) {
+                neigh.setWeightForMonsterNeighbor();
+            }
         }
     }
 
