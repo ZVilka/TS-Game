@@ -67,7 +67,7 @@ export default class Pacman {
                 break;
         }
     }
-    getDestinationCell(direction) {
+    getDestinationCell(direction = this._direction) {
         let newX = this.x;
         let newY = this.y;
         switch (direction) {

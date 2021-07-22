@@ -5,6 +5,7 @@ import Cell, {CELLTYPE} from "./cell.js";
 //let ql = require("../lib/q-learning.js")
 //import QL from "../lib/q-learning.js";
 import QLearner from "../lib/q-learning.js";
+import { throws } from "assert/strict";
 
 const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 wfffffmfffffffwwfffffffffffffw
@@ -73,7 +74,6 @@ const levelsArray = [level1];
 export default class Game {
     width: number;
     height: number;
-    learner: QLearner;
 
     score: number = 0;
     remainingFood: number = 0;
@@ -85,6 +85,9 @@ export default class Game {
     pacman: Pacman;
     monstersArray: Monster[] = [];
     cellArray: Cell[][] = [];
+
+    learner: QLearner = new QLearner(0.1, 0.9);
+    exploration: number = 0.01;
 
     private _canvas: HTMLCanvasElement;
     private readonly _context: CanvasRenderingContext2D;
@@ -125,7 +128,7 @@ export default class Game {
     }
 
     // TODO: Действия с клавиатуры
-    private _onKeydown(event: KeyboardEvent) {
+    private _onKeydown(event: KeyboardEvent) :void {
         switch(event.key) {
             case "ArrowUp":
                 this.pacman.setNextDirection(DIR.Up);
@@ -226,6 +229,25 @@ export default class Game {
         this.pacman.draw();
     }
 
+    private getCurrentState(): string {
+        let sortedCells: Cell[] = [...this.cellArray[this.pacman.x][this.pacman.y].neighborArray];
+
+        let compareCells = function(cell1: Cell, cell2: Cell) {
+            if (cell1.weight > cell2.weight) return -1;
+            if (cell1.weight === cell2.weight) return 0;
+            if (cell1.weight < cell2.weight) return 1;
+        };
+        sortedCells.sort(compareCells);
+
+        let state: string = "";
+
+        for (let i = 0; i < 4; i++) {
+            let neighborCell = this.cellArray[this.pacman.x][this.pacman.y].neighborArray[i];
+            state += "type: " + neighborCell.type + "rank:" + sortedCells.indexOf(neighborCell).toString();
+        }
+        return state;
+    }
+
     private _update(): void {
         if (this.remainingFood === 0) {
             alert("Level Finished");
@@ -233,6 +255,16 @@ export default class Game {
             this._stopGame();
             return;
         }
+
+        let currentState = this.getCurrentState();
+        let action: number | string = this.learner.bestAction(currentState);
+
+        if ((action == undefined) || (Math.random() < this.exploration)) {
+            action = this.getRandomNumber(0, 3);
+        }
+
+        this.pacman.setNextDirection(+action);
+        let reward = this.pacman.getDestinationCell().weight;
 
         this.pacman.updateDirection();
         let prevPacCell = this.pacman.move();
@@ -248,19 +280,25 @@ export default class Game {
             prevCell.draw();
             monster.draw();
             this._checkDeathForMonster(monster);
+            this.cellArray[monster.x][monster.y].setWeightForMonsterNeighbor();
             for (let neigh of this.cellArray[monster.x][monster.y].neighborArray) {
                 neigh.setWeightForMonsterNeighbor();
             }
         }
+
+        let nextState = this.getCurrentState();
+        this.learner.add(currentState, nextState, reward, action);
+
+        this.learner.learn(100);
     }
 
-    protected _checkDeath() {
+    protected _checkDeath() :void {
         for (let monster of this.monstersArray) {
             this._checkDeathForMonster(monster);
         }
     }
 
-    protected _checkDeathForMonster(monster:Monster) {
+    protected _checkDeathForMonster(monster:Monster) :void {
         if (this.pacman.x === monster.x && this.pacman.y === monster.y) {
             setTimeout(() => alert("Game Over"), 100);
             this.isOver = true;
@@ -268,7 +306,7 @@ export default class Game {
         }
     }
 
-    public getRandomNumber(min: number, max: number) {
+    public getRandomNumber(min: number, max: number) :number {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 }

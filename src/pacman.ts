@@ -86,7 +86,7 @@ export default class Pacman implements IAgent {
         }
     }
 
-    public getDestinationCell(direction:DIR): Cell {
+    public getDestinationCell(direction:DIR = this._direction): Cell {
         let newX = this.x;
         let newY = this.y;
 

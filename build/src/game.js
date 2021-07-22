@@ -1,6 +1,10 @@
 import Pacman, { DIR } from "./pacman.js";
 import Monster from "./monster.js";
 import Cell, { CELLTYPE } from "./cell.js";
+//import QLearner from "../lib/q-learning.js";
+//let ql = require("../lib/q-learning.js")
+//import QL from "../lib/q-learning.js";
+import QLearner from "../lib/q-learning.js";
 const level1 = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 wfffffmfffffffwwfffffffffffffw
 wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
@@ -72,6 +76,8 @@ export default class Game {
         this.isOver = false;
         this.monstersArray = [];
         this.cellArray = [];
+        this.learner = new QLearner(0.1, 0.9);
+        this.exploration = 0.01;
         this.width = w;
         this.height = h;
         this.gameSpeed = speed;
@@ -196,6 +202,24 @@ export default class Game {
         }
         this.pacman.draw();
     }
+    getCurrentState() {
+        let sortedCells = [...this.cellArray[this.pacman.x][this.pacman.y].neighborArray];
+        let compareCells = function (cell1, cell2) {
+            if (cell1.weight > cell2.weight)
+                return -1;
+            if (cell1.weight === cell2.weight)
+                return 0;
+            if (cell1.weight < cell2.weight)
+                return 1;
+        };
+        sortedCells.sort(compareCells);
+        let state = "";
+        for (let i = 0; i < 4; i++) {
+            let neighborCell = this.cellArray[this.pacman.x][this.pacman.y].neighborArray[i];
+            state += "type: " + neighborCell.type + "rank:" + sortedCells.indexOf(neighborCell).toString();
+        }
+        return state;
+    }
     _update() {
         if (this.remainingFood === 0) {
             alert("Level Finished");
@@ -203,6 +227,13 @@ export default class Game {
             this._stopGame();
             return;
         }
+        let currentState = this.getCurrentState();
+        let action = this.learner.bestAction(currentState);
+        if ((action == undefined) || (Math.random() < this.exploration)) {
+            action = this.getRandomNumber(0, 3);
+        }
+        this.pacman.setNextDirection(+action);
+        let reward = this.pacman.getDestinationCell().weight;
         this.pacman.updateDirection();
         let prevPacCell = this.pacman.move();
         prevPacCell.draw();
@@ -216,10 +247,14 @@ export default class Game {
             prevCell.draw();
             monster.draw();
             this._checkDeathForMonster(monster);
+            this.cellArray[monster.x][monster.y].setWeightForMonsterNeighbor();
             for (let neigh of this.cellArray[monster.x][monster.y].neighborArray) {
                 neigh.setWeightForMonsterNeighbor();
             }
         }
+        let nextState = this.getCurrentState();
+        this.learner.add(currentState, nextState, reward, action);
+        this.learner.learn(100);
     }
     _checkDeath() {
         for (let monster of this.monstersArray) {
