@@ -1,5 +1,5 @@
 export var CELLTYPE;
-(function (CELLTYPE) {
+(function(CELLTYPE) {
     CELLTYPE[CELLTYPE["Empty"] = 0] = "Empty";
     CELLTYPE[CELLTYPE["Food"] = 1] = "Food";
     CELLTYPE[CELLTYPE["Wall"] = 2] = "Wall";
@@ -24,38 +24,45 @@ export default class Cell {
         }
     }
     setWeightForMonsterNeighbor() {
-        this.weight = -1000;
+        this.weight = -1;
     }
     setWeightForPacmanNeighbor() {
         switch (this.type) {
-            case CELLTYPE.Empty: {
-                this.weight = this.getDistanceToFood();
-                break;
-            }
-            case CELLTYPE.Food: {
-                this.weight = 5;
-                break;
-            }
-            case CELLTYPE.Wall: {
-                this.weight = -1000;
-                break;
-            }
-            default: {
-                return;
-            }
+            case CELLTYPE.Empty:
+                {
+                    //this.weight = this.getDistanceToFood();
+                    this.weight = -0.1;
+                    break;
+                }
+            case CELLTYPE.Food:
+                {
+                    this.weight = 1;
+                    break;
+                }
+            case CELLTYPE.Wall:
+                {
+                    this.weight = -1;
+                    break;
+                }
+            default:
+                {
+                    return;
+                }
         }
     }
     getDistanceToFood() {
         let queue = [];
         queue.push(this);
-        let visited = new Map([[this, 0]]);
+        let visited = new Map([
+            [this, 0]
+        ]);
         while (queue.length !== 0) {
             let v = queue.shift();
             for (let neighbor of v.neighborArray) {
                 if (neighbor.type === CELLTYPE.Wall)
                     continue;
                 if (neighbor.type === CELLTYPE.Food) {
-                    return -(visited.get(v) + 1);
+                    return -Math.floor((visited.get(v) + 1) / 10);
                 }
                 if (!visited.has(neighbor)) {
                     queue.push(neighbor);
@@ -63,27 +70,31 @@ export default class Cell {
                 }
             }
         }
-        return -1000;
+        return -50;
     }
     draw() {
         switch (this.type) {
-            case CELLTYPE.Empty: {
-                this._drawRectangle("MediumBlue");
-                break;
-            }
-            case CELLTYPE.Food: {
-                this._drawRectangle("MediumBlue");
-                this._drawCircle('#cbcbd0');
-                break;
-            }
-            case CELLTYPE.Wall: {
-                this._drawRectangle("MediumBlue");
-                this._drawImage('src/assets/img/wall.svg', this._cellSize);
-                break;
-            }
-            default: {
-                return;
-            }
+            case CELLTYPE.Empty:
+                {
+                    this._drawRectangle("MediumBlue");
+                    break;
+                }
+            case CELLTYPE.Food:
+                {
+                    this._drawRectangle("MediumBlue");
+                    this._drawCircle('#cbcbd0');
+                    break;
+                }
+            case CELLTYPE.Wall:
+                {
+                    this._drawRectangle("black");
+                    this._drawImage('src/assets/img/wall.svg', this._cellSize);
+                    break;
+                }
+            default:
+                {
+                    return;
+                }
         }
     }
     _drawRectangle(color) {

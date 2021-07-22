@@ -37,7 +37,7 @@ export default class Cell {
     }
 
     public setWeightForMonsterNeighbor() {
-        this.weight = -1000;
+        this.weight = -50;
     }
 
 
@@ -52,7 +52,7 @@ export default class Cell {
                 break;
             }
             case CELLTYPE.Wall: {
-                this.weight = -1000;
+                this.weight = -50;
                 break;
             }
             default: {
@@ -70,7 +70,7 @@ export default class Cell {
             for (let neighbor of v.neighborArray) {
                 if (neighbor.type === CELLTYPE.Wall) continue;
                 if (neighbor.type === CELLTYPE.Food) {
-                    return -(visited.get(v) + 1);
+                    return -Math.floor((visited.get(v) + 1) / 10);
                 }
                 if (!visited.has(neighbor)) {
                     queue.push(neighbor);
@@ -78,7 +78,7 @@ export default class Cell {
                 }
             }
         }
-        return -1000;
+        return -50;
     }
 
     public draw(): void {

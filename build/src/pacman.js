@@ -1,6 +1,6 @@
 import { CELLTYPE } from "./cell.js";
 export var DIR;
-(function (DIR) {
+(function(DIR) {
     DIR[DIR["Up"] = 0] = "Up";
     DIR[DIR["Down"] = 1] = "Down";
     DIR[DIR["Left"] = 2] = "Left";
@@ -18,16 +18,18 @@ export default class Pacman {
         this._game = game;
         this._image = new Image();
         this._image.src = "src/assets/img/pacman.png";
-        this._image.onload = function () {
+        this._image.onload = function() {
             this.draw();
         }.bind(this);
     }
     updateDirection() {
         let destinationCell = this.getDestinationCell(this._nextDir);
-        if (destinationCell.type !== CELLTYPE.Wall) {
-            this._direction = this._nextDir;
-            this._setRotation();
-        }
+        // if (destinationCell.type !== CELLTYPE.Wall) {
+        //     this._direction = this._nextDir;
+        //     this._setRotation();
+        // }
+        this._direction = this._nextDir;
+        this._setRotation();
         this._nextDir = this._direction;
     }
     setNextDirection(dir) {

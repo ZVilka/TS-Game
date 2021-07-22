@@ -4,7 +4,7 @@ import Cell, {CELLTYPE} from "./cell.js";
 //import QLearner from "../lib/q-learning.js";
 //let ql = require("../lib/q-learning.js")
 //import QL from "../lib/q-learning.js";
-import QLearner from "../lib/q-learning.js";
+import  QLearner from "../lib/q-learning.js";
 import { throws } from "assert/strict";
 
 const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
@@ -147,7 +147,6 @@ export default class Game {
                     this._startGame();
                 else {
                     this._resetGame();
-                    this._loadLevel(this.currentLevel);
                 }
                 break;
             default:
@@ -156,13 +155,14 @@ export default class Game {
     }
 
     private _resetGame(): void {
-        this._stopGame();
+        //this._stopGame();
         this.isOver = false;
         this.pacman = undefined;
         this.cellArray = [];
         this.monstersArray = [];
         this.score = 0;
         this.remainingFood = 0;
+        this._loadLevel(this.currentLevel);
     }
 
     // TODO: Добавить размеры объектов в конструкторы, weight клетки
@@ -171,7 +171,6 @@ export default class Game {
         let level = levelsArray[lvlNumber - 1];
         let row = 0;
         let symbolCounter = 0;
-        this._resetGame();
         for (let i = 0; i < this.width; i++) {
             this.cellArray[i] = [];
         }
@@ -259,37 +258,45 @@ export default class Game {
         let currentState = this.getCurrentState();
         let action: number | string = this.learner.bestAction(currentState);
 
-        if ((action == undefined) || (Math.random() < this.exploration)) {
+        if ((action == undefined) || (this.learner.getQValue(currentState, action) <= -25) || (Math.random() < this.exploration)) {
             action = this.getRandomNumber(0, 3);
         }
 
         this.pacman.setNextDirection(+action);
-        let reward = this.pacman.getDestinationCell().weight;
+        let nextCell = this.pacman.getDestinationCell();
+        let reward = nextCell.weight;
+        //let nextState: string = "";
 
-        this.pacman.updateDirection();
-        let prevPacCell = this.pacman.move();
-        prevPacCell.draw();
-        this.pacman.draw();
-        this._checkDeath();
-        for (let neigh of this.cellArray[this.pacman.x][this.pacman.y].neighborArray) {
-            neigh.setWeightForPacmanNeighbor();
-        }
-
-        for (let monster of this.monstersArray) {
-            let prevCell = monster.move();
-            prevCell.draw();
-            monster.draw();
-            this._checkDeathForMonster(monster);
-            this.cellArray[monster.x][monster.y].setWeightForMonsterNeighbor();
-            for (let neigh of this.cellArray[monster.x][monster.y].neighborArray) {
-                neigh.setWeightForMonsterNeighbor();
+        if (reward == -50) {
+            this._resetGame();
+            //nextState = this.getCurrentState();
+            
+        } else {
+            this.pacman.updateDirection();
+            let prevPacCell = this.pacman.move();
+            prevPacCell.draw();
+            this.pacman.draw();
+            //this._checkDeath();
+            for (let neigh of this.cellArray[this.pacman.x][this.pacman.y].neighborArray) {
+                neigh.setWeightForPacmanNeighbor();
             }
+    
+            for (let monster of this.monstersArray) {
+                let prevCell = monster.move();
+                prevCell.draw();
+                monster.draw();
+                //this._checkDeathForMonster(monster);
+                this.cellArray[monster.x][monster.y].setWeightForMonsterNeighbor();
+                for (let neigh of this.cellArray[monster.x][monster.y].neighborArray) {
+                    neigh.setWeightForMonsterNeighbor();
+                }
+            }
+            
         }
-
         let nextState = this.getCurrentState();
         this.learner.add(currentState, nextState, reward, action);
 
-        this.learner.learn(100);
+        this.learner.learn(10);
     }
 
     protected _checkDeath() :void {

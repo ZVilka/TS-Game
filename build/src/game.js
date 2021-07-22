@@ -4,7 +4,8 @@ import Cell, { CELLTYPE } from "./cell.js";
 //import QLearner from "../lib/q-learning.js";
 //let ql = require("../lib/q-learning.js")
 //import QL from "../lib/q-learning.js";
-import QLearner from "../lib/q-learning.js";
+//import QLearner from "../lib/q-learning.js";
+
 const level1 = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 wfffffmfffffffwwfffffffffffffw
 wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
@@ -35,7 +36,8 @@ wfwwffffffffffwwffffffffffwwfw
 wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
 wpwwffffmfffffffffffffffffwwfw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
-// const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+
+// const level1 = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 // weeeeeeeeeeeeewweeeeeeeeeefmfw
 // wewwwwwewwwwwewwewwwwwewwwwwew
 // wewwwwwewwwwwewwewwwwwewwwwwew
@@ -100,12 +102,12 @@ export default class Game {
         }
     }
     _updateTimer() {
-        if (this.isStarted) {
-            this._update();
-            setTimeout(() => this._updateTimer(), this.gameSpeed);
+            if (this.isStarted) {
+                this._update();
+                setTimeout(() => this._updateTimer(), this.gameSpeed);
+            }
         }
-    }
-    // TODO: Действия с клавиатуры
+        // TODO: Действия с клавиатуры
     _onKeydown(event) {
         switch (event.key) {
             case "ArrowUp":
@@ -125,7 +127,6 @@ export default class Game {
                     this._startGame();
                 else {
                     this._resetGame();
-                    this._loadLevel(this.currentLevel);
                 }
                 break;
             default:
@@ -133,21 +134,21 @@ export default class Game {
         }
     }
     _resetGame() {
-        this._stopGame();
-        this.isOver = false;
-        this.pacman = undefined;
-        this.cellArray = [];
-        this.monstersArray = [];
-        this.score = 0;
-        this.remainingFood = 0;
-    }
-    // TODO: Добавить размеры объектов в конструкторы, weight клетки
+            //this._stopGame();
+            this.isOver = false;
+            this.pacman = undefined;
+            this.cellArray = [];
+            this.monstersArray = [];
+            this.score = 0;
+            this.remainingFood = 0;
+            this._loadLevel(this.currentLevel);
+        }
+        // TODO: Добавить размеры объектов в конструкторы, weight клетки
     _loadLevel(lvlNumber) {
         let objectSize = 20;
         let level = levelsArray[lvlNumber - 1];
         let row = 0;
         let symbolCounter = 0;
-        this._resetGame();
         for (let i = 0; i < this.width; i++) {
             this.cellArray[i] = [];
         }
@@ -204,7 +205,7 @@ export default class Game {
     }
     getCurrentState() {
         let sortedCells = [...this.cellArray[this.pacman.x][this.pacman.y].neighborArray];
-        let compareCells = function (cell1, cell2) {
+        let compareCells = function(cell1, cell2) {
             if (cell1.weight > cell2.weight)
                 return -1;
             if (cell1.weight === cell2.weight)
@@ -229,32 +230,43 @@ export default class Game {
         }
         let currentState = this.getCurrentState();
         let action = this.learner.bestAction(currentState);
-        if ((action == undefined) || (Math.random() < this.exploration)) {
+        console.log("best action:", action);
+        console.log("qvalue:", this.learner.getQValue(currentState, action));
+        if ((action == undefined) || this.learner.getQValue(currentState, action) < 0 || (Math.random() < this.exploration)) {
+
             action = this.getRandomNumber(0, 3);
+            console.log("random: ", action);
         }
         this.pacman.setNextDirection(+action);
-        let reward = this.pacman.getDestinationCell().weight;
-        this.pacman.updateDirection();
-        let prevPacCell = this.pacman.move();
-        prevPacCell.draw();
-        this.pacman.draw();
-        this._checkDeath();
-        for (let neigh of this.cellArray[this.pacman.x][this.pacman.y].neighborArray) {
-            neigh.setWeightForPacmanNeighbor();
-        }
-        for (let monster of this.monstersArray) {
-            let prevCell = monster.move();
-            prevCell.draw();
-            monster.draw();
-            this._checkDeathForMonster(monster);
-            this.cellArray[monster.x][monster.y].setWeightForMonsterNeighbor();
-            for (let neigh of this.cellArray[monster.x][monster.y].neighborArray) {
-                neigh.setWeightForMonsterNeighbor();
+        let nextCell = this.pacman.getDestinationCell();
+        let reward = nextCell.weight;
+        //let nextState: string = "";
+        if (reward == -1) {
+            this._resetGame();
+            //nextState = this.getCurrentState();
+        } else {
+            this.pacman.updateDirection();
+            let prevPacCell = this.pacman.move();
+            prevPacCell.draw();
+            this.pacman.draw();
+            //this._checkDeath();
+            for (let neigh of this.cellArray[this.pacman.x][this.pacman.y].neighborArray) {
+                neigh.setWeightForPacmanNeighbor();
+            }
+            for (let monster of this.monstersArray) {
+                let prevCell = monster.move();
+                prevCell.draw();
+                monster.draw();
+                //this._checkDeathForMonster(monster);
+                this.cellArray[monster.x][monster.y].setWeightForMonsterNeighbor();
+                for (let neigh of this.cellArray[monster.x][monster.y].neighborArray) {
+                    neigh.setWeightForMonsterNeighbor();
+                }
             }
         }
         let nextState = this.getCurrentState();
         this.learner.add(currentState, nextState, reward, action);
-        this.learner.learn(100);
+        this.learner.learn(10);
     }
     _checkDeath() {
         for (let monster of this.monstersArray) {
@@ -272,4 +284,4 @@ export default class Game {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 }
-const game = new Game(30, 30, 200);
+const game = new Game(30, 30, 500);
