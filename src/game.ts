@@ -4,39 +4,39 @@ import Cell, {CELLTYPE} from "./cell.js";
 import IAgent from "./IAgent.js";
 import  QLearner from "../lib/q-learning.js";
 
-const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-wfffffmfffffffwwfffffffffffffw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
-wffffffffffwwfwwfwwffffffffffw
-wfwwwwwfwwffffffffffwwmwwwwwfw
-wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
-wfffffffwwfwwwwwwwwfwwfffffffw
-wfwwwwwfwwffffwwffffwwfwwwwwfw
-wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
-wfffffffwwwwwfwwfwwwwwfffffffw
-wwwwwwwfffffffffffmffffwwwwwww
-wwwwwwwfwwfwwwffwwwfwwfwwwwwww
-wwwwwwwfwwfwffffffwfwwfwwwwwww
-wwwwwwwfwwfwffffffwfwwfwwwwwww
-wfffffffwwfwffffffwfwwfffffffw
-wfwwwwwfwwfwffffffwfwwfwwwwwfw
-wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
-wffffwwfwwffffffffffwwfwwffffw
-wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-wfffffffffffffwwfffmfffffffffw
-wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-wfwwffffffffffwwffffffffffwwfw
-wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
-wpwwffffmfffffffffffffffffwwfw
-wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
+// const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+// wfffffmfffffffwwfffffffffffffw
+// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+// wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
+// wffffffffffwwfwwfwwffffffffffw
+// wfwwwwwfwwffffffffffwwmwwwwwfw
+// wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
+// wfffffffwwfwwwwwwwwfwwfffffffw
+// wfwwwwwfwwffffwwffffwwfwwwwwfw
+// wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
+// wfffffffwwwwwfwwfwwwwwfffffffw
+// wwwwwwwfffffffffffmffffwwwwwww
+// wwwwwwwfwwfwwwffwwwfwwfwwwwwww
+// wwwwwwwfwwfwffffffwfwwfwwwwwww
+// wwwwwwwfwwfwffffffwfwwfwwwwwww
+// wfffffffwwfwffffffwfwwfffffffw
+// wfwwwwwfwwfwffffffwfwwfwwwwwfw
+// wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
+// wffffwwfwwffffffffffwwfwwffffw
+// wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+// wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+// wfffffffffffffwwfffmfffffffffw
+// wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+// wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+// wfwwffffffffffwwffffffffffwwfw
+// wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
+// wpwwffffmfffffffffffffffffwwfw
+// wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 
 // const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-// weeeeeeeeeeeeewweeeeeeeeeefmfw
+// weeeeeeeeeeeeewweeeeeeeeeeeeew
 // wewwwwwewwwwwewwewwwwwewwwwwew
 // wewwwwwewwwwwewwewwwwwewwwwwew
 // wewwwwwewwwwwewwewwwwwewwwwwew
@@ -62,9 +62,40 @@ wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 // wewwwwwwwwwwwewwewwwwwwwwwwwew
 // wewwwwwwwwwwwewwewwwwwwwwwwwew
 // wewweeeeeeeeeewweeeeeeeeeewwew
-// wewwewwwwwwwwewwewwwwwwwwewwew
-// wpwweeeeeeeeeeeeeeeeeeeeeewwew
+// wewwewwwwwwwwwwwwwwwwwwwwewwew
+// wewwpeeeeeeeeeeeeeeeeeeefmwwew
 // wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
+
+const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wfffffffmfffffwwfffffmfffffffw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wffffffffffwwfwwfwwffffffffffw
+wfwwwwwfwwfffffmffffwwfwwwwwfw
+wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
+wfffffffwwfwwwwwwwwfwwfffffffw
+wfwwwwwfwwffffwwffffwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfffffffwwwwwfwwfwwwwwfffffffw
+wwwwwwwffffffffffffffffwwwwwww
+wwwwwwwfwwfwwwffwwwfwwfwwwwwww
+wwwwwwwfwwfwffffffwfwwfwwwwwww
+wwwwwwwfwwfwffffffwfwwfwwwwwww
+wfffffffwwmwffffffwmwwfffffffw
+wfwwwwwfwwfwffffffwfwwfwwwwwfw
+wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
+wffffwwfwwffffffffffwwfwwffffw
+wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+wfffffffffffffwwfffffffffffffw
+wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+wfwwffffffffffwwffffffffffwwfw
+wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
+wpwwffffffffffmfffffffffffwwfw
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 
 const levelsArray = [level1];
 
@@ -92,7 +123,15 @@ export default class Game {
     learner: QLearner = new QLearner(0.1, 0.9);
     exploration: number = 0.2;
 
+    totalFoodEaten: number = 0;
+    totalFood: number = 0;
+    deaths: number = 0;
+    finishes: number = 0;
+
     private speedInput: HTMLInputElement;
+    private deathCountSpan: HTMLElement;
+    private foodPercentSpan: HTMLElement;
+    private finishCountSpan: HTMLElement;
 
     private _canvas: HTMLCanvasElement;
     private readonly _context: CanvasRenderingContext2D;
@@ -109,6 +148,9 @@ export default class Game {
         this.speedInput = document.getElementById("speed-input") as HTMLInputElement;
         this.speedInput.addEventListener("input", this.changeGameSpeed.bind(this));
 
+        this.deathCountSpan = document.getElementById("death-count");
+        this.foodPercentSpan = document.getElementById("food-percent");
+        this.finishCountSpan = document.getElementById("finish-count");
 
         this.currentLevel = 1;
 
@@ -163,7 +205,9 @@ export default class Game {
                     this._resetGame();
                 }
                 break;
-            case "ArrowUp":
+            case "c":
+                this._stopGame();
+            case "d":
                 this._update();
                 break;
             default:
@@ -172,7 +216,14 @@ export default class Game {
     }
 
     private _resetGame(): void {
-        //this._stopGame();
+        if (this.remainingFood == 0)
+            this.finishes++;
+        else
+            this.deaths++;
+        let percent = Math.floor(this.totalFoodEaten / this.totalFood * 100);
+        this.deathCountSpan.innerHTML = this.deaths.toString();
+        this.foodPercentSpan.innerHTML = percent.toString();
+        this.finishCountSpan.innerHTML = this.finishes.toString();
         this.isOver = false;
         this.pacman = undefined;
         this.cellArray = [];
@@ -225,13 +276,14 @@ export default class Game {
                 case "p":
                     let emptyCellPacman = new Cell(col, row, CELLTYPE.Empty, this._context, this, objectSize);
                     this.cellArray[col][row] = emptyCellPacman;
-                    let pacman = new Pacman(col, row, DIR.Up, this._context, this, objectSize);
+                    let pacman = new Pacman(col, row, DIR.Right, this._context, this, objectSize);
                     pacman.occupiedCell = emptyCellPacman;
                     this.pacman = pacman;
                     symbolCounter++;
                     break;
             }
         }
+        this.totalFood += this.remainingFood;
 
         for (let monster of this.monstersArray) {
             monster.initDirection();
@@ -275,13 +327,6 @@ export default class Game {
     }
 
     private _update(): void {
-        if (this.remainingFood === 0) {
-            alert("Level Finished");
-            this.isOver = true;
-            this._stopGame();
-            return;
-        }
-
         let currentState = this.getCurrentState();
         let action: number | string = this.learner.bestAction(currentState);
 
@@ -298,6 +343,11 @@ export default class Game {
         this.pacman.setNextDirection(+action);
         let reward = nextCell.weight;
 
+        this.resetWeightsForAgent(this.pacman);
+        for (let monster of this.monstersArray) {
+            this.resetWeightsForAgent(monster);
+        }
+
         this.updateAllMonsters();
         this.updatePacman();
 
@@ -310,8 +360,9 @@ export default class Game {
             monster.draw();
         }
 
-        if (reward == REWARD.Monster) {
-            //console.log("reset action: ", action);
+        //console.log("reward:", reward);
+        if (reward == REWARD.Monster || this.remainingFood == 0) {
+            // console.log("reset action: ", action);
             this._resetGame();
         }
         let nextState = this.getCurrentState();
@@ -322,7 +373,6 @@ export default class Game {
     }
 
     private updatePacman(): void {
-        this.resetWeightsForAgent(this.pacman);
         this.pacman.updateDirection();
         let prevPacCell = this.pacman.move();
         // prevPacCell.draw();
@@ -332,15 +382,16 @@ export default class Game {
 
     private updateAllMonsters(): void {
         for (let monster of this.monstersArray) {
-            this.resetWeightsForAgent(monster);
             let prevCell = monster.move();
             // prevCell.draw();
             // monster.draw();
-            this.setWeightsForMonster(monster);
+            //this.setWeightsForMonster(monster);
+            monster.setWeights();
         }
     }
 
     private resetWeightsForAgent(agent: IAgent): void {
+        agent.occupiedCell.resetWeightDistance();
         for (let neigh of agent.occupiedCell.neighborArray) {
             neigh.resetWeightDistance();
         }

@@ -1,7 +1,7 @@
 import IAgent from "./IAgent.js";
 import {DIR} from "./pacman.js";
 import Cell, {CELLTYPE} from "./cell.js";
-import Game from "./game.js";
+import Game, { REWARD } from "./game.js";
 
 export enum AXIS {
     Hor,
@@ -45,7 +45,7 @@ export default class Monster implements IAgent {
 
             switch (destinationCell.type) {
                 case CELLTYPE.Wall:
-                    this._changeDirection();
+                    this._direction = this._getNewDirection();
                     destinationCell = this.getDestinationCell();
                     this.occupiedCell = destinationCell;
                     this._makeAStep();
@@ -126,11 +126,11 @@ export default class Monster implements IAgent {
         }
     }
 
-    public getDestinationCell(): Cell {
+    public getDestinationCell(direction:DIR = this._direction): Cell {
         let newX = this.x;
         let newY = this.y;
 
-        switch(this._direction) {
+        switch(direction) {
             case DIR.Up:
                 newY--;
                 break;
@@ -154,23 +154,31 @@ export default class Monster implements IAgent {
         return random ? AXIS.Hor : AXIS.Vert;
     }
 
-    protected _changeDirection() :void {
+    protected _getNewDirection() : DIR {
         switch (this._direction) {
             case DIR.Up:
-                this._direction = DIR.Down;
+                return DIR.Down;
                 break;
             case DIR.Down:
-                this._direction = DIR.Up;
+                return DIR.Up;
                 break;
             case DIR.Left:
-                this._direction = DIR.Right;
+                return DIR.Right;
                 break;
             case DIR.Right:
-                this._direction = DIR.Left;
+                return DIR.Left;
                 break;
             default:
                 break;
         }
+    }
+
+    public setWeights(): void {
+        this.occupiedCell.weight = REWARD.Monster;
+        let destinationCell = this.getDestinationCell();
+        if (destinationCell.type == CELLTYPE.Wall)
+            destinationCell = this.getDestinationCell(this._getNewDirection());
+        destinationCell.weight = REWARD.Monster;
     }
 
     public draw(x:number = this.x, y:number = this.y): void {

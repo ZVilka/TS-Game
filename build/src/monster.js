@@ -1,5 +1,6 @@
 import { DIR } from "./pacman.js";
 import { CELLTYPE } from "./cell.js";
+import { REWARD } from "./game.js";
 export var AXIS;
 (function (AXIS) {
     AXIS[AXIS["Hor"] = 0] = "Hor";
@@ -21,7 +22,7 @@ export default class Monster {
         if (this._isMoving) {
             switch (destinationCell.type) {
                 case CELLTYPE.Wall:
-                    this._changeDirection();
+                    this._direction = this._getNewDirection();
                     destinationCell = this.getDestinationCell();
                     this.occupiedCell = destinationCell;
                     this._makeAStep();
@@ -97,10 +98,10 @@ export default class Monster {
             this._direction = DIR.Up;
         }
     }
-    getDestinationCell() {
+    getDestinationCell(direction = this._direction) {
         let newX = this.x;
         let newY = this.y;
-        switch (this._direction) {
+        switch (direction) {
             case DIR.Up:
                 newY--;
                 break;
@@ -122,23 +123,30 @@ export default class Monster {
         let random = this._game.getRandomNumber(0, 1);
         return random ? AXIS.Hor : AXIS.Vert;
     }
-    _changeDirection() {
+    _getNewDirection() {
         switch (this._direction) {
             case DIR.Up:
-                this._direction = DIR.Down;
+                return DIR.Down;
                 break;
             case DIR.Down:
-                this._direction = DIR.Up;
+                return DIR.Up;
                 break;
             case DIR.Left:
-                this._direction = DIR.Right;
+                return DIR.Right;
                 break;
             case DIR.Right:
-                this._direction = DIR.Left;
+                return DIR.Left;
                 break;
             default:
                 break;
         }
+    }
+    setWeights() {
+        this.occupiedCell.weight = REWARD.Monster;
+        let destinationCell = this.getDestinationCell();
+        if (destinationCell.type == CELLTYPE.Wall)
+            destinationCell = this.getDestinationCell(this._getNewDirection());
+        destinationCell.weight = REWARD.Monster;
     }
     draw(x = this.x, y = this.y) {
         this._context.drawImage(this._image, x * this._cellSize, y * this._cellSize, this._cellSize, this._cellSize);

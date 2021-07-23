@@ -131,6 +131,7 @@ export default class Pacman {
         }
     }
     eatFood(cell) {
+        this._game.totalFoodEaten++;
         this._game.remainingFood--;
         cell.type = CELLTYPE.Empty;
     }

@@ -13,6 +13,18 @@
 <body>
     <p class="text">Нажмите пробел, чтобы начать игру</p>
     <canvas id="field" class="field" width="600" height="600"></canvas>
-    <span class="text">Speed:</span><input id="speed-input" type=number autocomplete="off" value=200 step=10 min=10 max=1000>
+    <div>
+        <span class="text">Speed:</span><input id="speed-input" type=number autocomplete="off" value=200 step=10 min=10 max=1000>
+    </div>
+
+    <div class="text">
+        <div>
+            <span>Deaths: </span><span id="death-count">0</span>
+        </div>
+        <div>
+            <span>Food percent: </span><span id="food-percent">0</span>%
+        </div>
+        <span>Finishes: </span><span id="finish-count">0</span>
+    </div>
     <script type="module" src="./build/src/game.js"></script>
 </body>
