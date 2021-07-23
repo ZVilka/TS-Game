@@ -1,10 +1,10 @@
 import { CELLTYPE } from "./cell.js";
 export var DIR;
-(function(DIR) {
+(function (DIR) {
     DIR[DIR["Up"] = 0] = "Up";
-    DIR[DIR["Down"] = 1] = "Down";
-    DIR[DIR["Left"] = 2] = "Left";
-    DIR[DIR["Right"] = 3] = "Right";
+    DIR[DIR["Right"] = 1] = "Right";
+    DIR[DIR["Down"] = 2] = "Down";
+    DIR[DIR["Left"] = 3] = "Left";
 })(DIR || (DIR = {}));
 export default class Pacman {
     constructor(x, y, dir, ctx, game, size = 20) {
@@ -18,7 +18,7 @@ export default class Pacman {
         this._game = game;
         this._image = new Image();
         this._image.src = "src/assets/img/pacman.png";
-        this._image.onload = function() {
+        this._image.onload = function () {
             this.draw();
         }.bind(this);
     }
@@ -35,6 +35,16 @@ export default class Pacman {
     setNextDirection(dir) {
         this._nextDir = dir;
     }
+    getLegalActions() {
+        let res = [];
+        for (let i = 0; i < 4; i++) {
+            let neigh = this._game.cellArray[this.x][this.y].neighborArray[i];
+            if (neigh.type != CELLTYPE.Wall) {
+                res.push(i);
+            }
+        }
+        return res;
+    }
     move() {
         let prevCell = this._game.cellArray[this.x][this.y];
         let destinationCell = this.getDestinationCell(this._direction);
@@ -42,10 +52,12 @@ export default class Pacman {
             case CELLTYPE.Wall:
                 break;
             case CELLTYPE.Food:
+                this.occupiedCell = destinationCell;
                 this._makeAStep();
                 this.eatFood(destinationCell);
                 break;
             default:
+                this.occupiedCell = destinationCell;
                 this._makeAStep();
                 break;
         }

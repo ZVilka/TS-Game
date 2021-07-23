@@ -22,8 +22,12 @@ export default class Monster {
             switch (destinationCell.type) {
                 case CELLTYPE.Wall:
                     this._changeDirection();
+                    destinationCell = this.getDestinationCell();
+                    this.occupiedCell = destinationCell;
+                    this._makeAStep();
                     break;
                 default:
+                    this.occupiedCell = destinationCell;
                     this._makeAStep();
                     break;
             }

@@ -16,6 +16,8 @@ export default class Monster implements IAgent {
     private _game: Game;
     private _isMoving: boolean;
 
+    public occupiedCell: Cell;
+
     private _image: HTMLImageElement;
     private _context: CanvasRenderingContext2D;
     private readonly _cellSize: number;
@@ -44,8 +46,12 @@ export default class Monster implements IAgent {
             switch (destinationCell.type) {
                 case CELLTYPE.Wall:
                     this._changeDirection();
+                    destinationCell = this.getDestinationCell();
+                    this.occupiedCell = destinationCell;
+                    this._makeAStep();
                     break;
                 default:
+                    this.occupiedCell = destinationCell;
                     this._makeAStep();
                     break;
             }

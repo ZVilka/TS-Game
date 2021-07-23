@@ -1,12 +1,13 @@
 import IAgent from "./IAgent.js";
 import Game from "./game.js";
 import Cell, {CELLTYPE} from "./cell.js";
+import { runInThisContext } from "vm";
 
 export enum DIR {
     Up,
+    Right,
     Down,
-    Left,
-    Right
+    Left
 }
 
 export default class Pacman implements IAgent {
@@ -21,6 +22,7 @@ export default class Pacman implements IAgent {
     private _context: CanvasRenderingContext2D;
     private readonly _cellSize: number;
     private readonly _game: Game;
+    public occupiedCell: Cell;
     constructor(x: number, y: number, dir: DIR, ctx: CanvasRenderingContext2D, game: Game, size: number = 20) {
         this.x = x;
         this.y = y;
@@ -38,15 +40,29 @@ export default class Pacman implements IAgent {
 
     public updateDirection() :void {
         let destinationCell = this.getDestinationCell(this._nextDir);
-        if (destinationCell.type !== CELLTYPE.Wall) {
-            this._direction = this._nextDir;
-            this._setRotation();
-        }
+        // if (destinationCell.type !== CELLTYPE.Wall) {
+        //     this._direction = this._nextDir;
+        //     this._setRotation();
+        // }
+        this._direction = this._nextDir;
+        this._setRotation();
+
         this._nextDir = this._direction;
     }
 
     public setNextDirection(dir:DIR) :void {
         this._nextDir = dir;
+    }
+
+    public getLegalActions(): DIR[] {
+        let res = [];
+        for (let i = 0; i < 4; i++) {
+            let neigh = this._game.cellArray[this.x][this.y].neighborArray[i];
+            if (neigh.type != CELLTYPE.Wall) {
+                res.push(i);
+            }
+        }
+        return res;
     }
 
     public move(): Cell {
@@ -57,10 +73,12 @@ export default class Pacman implements IAgent {
             case CELLTYPE.Wall:
                 break;
             case CELLTYPE.Food:
+                this.occupiedCell = destinationCell;
                 this._makeAStep();
                 this.eatFood(destinationCell);
                 break;
             default:
+                this.occupiedCell = destinationCell;
                 this._makeAStep();
                 break;
         }

@@ -1,4 +1,4 @@
-import Game from './game.js'
+import Game, { REWARD } from './game.js'
 import IAgent from './IAgent.js';
 
 export enum CELLTYPE {
@@ -12,6 +12,7 @@ export default class Cell {
     y: number;
     type: CELLTYPE;
     weight: number = 0;
+    distanceToFood: number = 1000;
     private readonly _cellSize: number;
     private _game: Game;
     neighborArray: Cell[] = [];
@@ -28,37 +29,30 @@ export default class Cell {
     }
 
     public setNeighbors(): void {
-        for (let x=-1; x <=1; x++) {
-            for (let y=-1; y<=1; y++) {
-                if (Math.abs(x) !== Math.abs(y) && !( x=== 0 && y === 0))
-                    this.neighborArray.push(this._game.cellArray[this.x + x][this.y + y]);
-            }
-        }
+        // for (let x=-1; x <=1; x++) {
+        //     for (let y=-1; y<=1; y++) {
+        //         if (Math.abs(x) !== Math.abs(y) && !( x=== 0 && y === 0))
+        //             this.neighborArray.push(this._game.cellArray[this.x + x][this.y + y]);
+        //     }
+        // }
+        let up = this._game.cellArray[this.x][this.y - 1];
+        let right = this._game.cellArray[this.x + 1][this.y];
+        let down = this._game.cellArray[this.x][this.y + 1];
+        let left = this._game.cellArray[this.x - 1][this.y];
+        this.neighborArray.push(up, right, down, left);
     }
 
-    public setWeightForMonsterNeighbor() {
-        this.weight = -50;
+    public resetWeightDistance(): void {
+        this.weight = 0;
+        this.distanceToFood = 1000;
     }
 
+    public setWeightForMonsterNeighbor(): void {
+        this.weight = REWARD.Monster;
+    }
 
-    public setWeightForPacmanNeighbor() {
-        switch (this.type) {
-            case CELLTYPE.Empty: {
-                this.weight = this.getDistanceToFood();
-                break;
-            }
-            case CELLTYPE.Food: {
-                this.weight = 5;
-                break;
-            }
-            case CELLTYPE.Wall: {
-                this.weight = -50;
-                break;
-            }
-            default: {
-                return;
-            }
-        }
+    public setDistanceToFood(): void {
+        this.distanceToFood = this.getDistanceToFood();
     }
 
     public getDistanceToFood(): number {
@@ -70,7 +64,7 @@ export default class Cell {
             for (let neighbor of v.neighborArray) {
                 if (neighbor.type === CELLTYPE.Wall) continue;
                 if (neighbor.type === CELLTYPE.Food) {
-                    return -Math.floor((visited.get(v) + 1) / 10);
+                    return visited.get(v) + 1;
                 }
                 if (!visited.has(neighbor)) {
                     queue.push(neighbor);
@@ -85,16 +79,19 @@ export default class Cell {
         switch (this.type) {
             case CELLTYPE.Empty: {
                 this._drawRectangle("MediumBlue");
+                this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.Food: {
                 this._drawRectangle("MediumBlue");
                 this._drawCircle('#cbcbd0');
+                this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.Wall: {
-                this._drawRectangle("MediumBlue");
+                this._drawRectangle("black");
                 this._drawImage('src/assets/img/wall.svg', this._cellSize);
+                this._drawText(this.weight.toString(), "purple");
                 break;
             }
             default: {
@@ -126,5 +123,10 @@ export default class Cell {
         img.onload = () => {
             this._context.drawImage(img, this.x * this._cellSize, this.y * this._cellSize, size, size);
         }
+    }
+
+    protected _drawText(text: string, color: string) {
+        this._context.fillStyle = color;
+        this._context.fillText(text, this.x * this._cellSize + 5, this.y * this._cellSize + 8);
     }
 }
