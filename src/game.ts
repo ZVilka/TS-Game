@@ -90,7 +90,7 @@ export default class Game {
     cellArray: Cell[][] = [];
 
     learner: QLearner = new QLearner(0.1, 0.9);
-    exploration: number = 0.01;
+    exploration: number = 0.2;
 
     private speedInput: HTMLInputElement;
 
@@ -285,12 +285,11 @@ export default class Game {
         let currentState = this.getCurrentState();
         let action: number | string = this.learner.bestAction(currentState);
 
-        // (this.learner.getQValue(currentState, action) <= -25)
-        // (Math.random() < this.exploration)
-        if ((action == undefined)  || (this.learner.getQValue(currentState, action) <= 0)) {
-            let legalActions = this.pacman.getLegalActions();
-            let rand = this.getRandomNumber(0, legalActions.length - 1);
-            action = legalActions[rand];
+        let legalActions = this.pacman.getLegalActions();
+        let rand = this.getRandomNumber(0, legalActions.length - 1);
+        let randomAction = legalActions[rand];
+        if (action === null || action === undefined || (!this.learner.knowsAction(currentState, randomAction) && Math.random() < game.exploration)) {
+            action = randomAction;
             //console.log("random action: ", action);
         }
 
@@ -310,7 +309,6 @@ export default class Game {
         for (let monster of this.monstersArray) {
             monster.draw();
         }
-
 
         if (reward == REWARD.Monster) {
             //console.log("reset action: ", action);
@@ -376,31 +374,6 @@ export default class Game {
         cellsToRank.sort(compareCellsByDistance);
         for (let cell of cellsToRank) {
             cell.weight = -cellsToRank.indexOf(cell) - 1;
-        }
-    }
-
-    private setWeightsForPacman2(): void {
-        for (let neigh of this.pacman.occupiedCell.neighborArray) {
-            neigh.setDistanceToFood();
-        }
-
-        let rankedCells: Cell[] = [...this.pacman.occupiedCell.neighborArray];
-
-        let compareCellsByDistance = function(cell1: Cell, cell2: Cell) {
-            if (cell1.distanceToFood > cell2.distanceToFood) return 1;
-            if (cell1.distanceToFood === cell2.distanceToFood) return 0;
-            if (cell1.distanceToFood < cell2.distanceToFood) return -1;
-        };
-        rankedCells.sort(compareCellsByDistance);
-
-        for (let i = 0; i < 4; i++) {
-            let neighborCell = this.pacman.occupiedCell.neighborArray[i];
-            if (neighborCell.type == CELLTYPE.Food) {
-                neighborCell.weight = REWARD.Food;
-            } else if (neighborCell.type == CELLTYPE.Empty) {
-                neighborCell.weight = -rankedCells.indexOf(neighborCell);
-            }
-            
         }
     }
 
