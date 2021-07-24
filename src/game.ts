@@ -3,37 +3,7 @@ import Monster from "./monster.js";
 import Cell, {CELLTYPE} from "./cell.js";
 import IAgent from "./IAgent.js";
 import  QLearner from "../lib/q-learning.js";
-
-// const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-// wfffffmfffffffwwfffffffffffffw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
-// wffffffffffwwfwwfwwffffffffffw
-// wfwwwwwfwwffffffffffwwmwwwwwfw
-// wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
-// wfffffffwwfwwwwwwwwfwwfffffffw
-// wfwwwwwfwwffffwwffffwwfwwwwwfw
-// wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
-// wfffffffwwwwwfwwfwwwwwfffffffw
-// wwwwwwwfffffffffffmffffwwwwwww
-// wwwwwwwfwwfwwwffwwwfwwfwwwwwww
-// wwwwwwwfwwfwffffffwfwwfwwwwwww
-// wwwwwwwfwwfwffffffwfwwfwwwwwww
-// wfffffffwwfwffffffwfwwfffffffw
-// wfwwwwwfwwfwffffffwfwwfwwwwwfw
-// wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
-// wffffwwfwwffffffffffwwfwwffffw
-// wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-// wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-// wfffffffffffffwwfffmfffffffffw
-// wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-// wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-// wfwwffffffffffwwffffffffffwwfw
-// wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
-// wpwwffffmfffffffffffffffffwwfw
-// wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
+import { timeStamp } from "console";
 
 // const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 // weeeeeeeeeeeeewweeeeeeeeeeeeew
@@ -97,11 +67,42 @@ wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
 wpwwffffffffffmfffffffffffwwfw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 
-const levelsArray = [level1];
+const level2: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wfffffmfffffffwwfffffffffffffw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
+wffffffffffwwfwwfwwffffffffffw
+wfwwwwwfwwffffffffffwwmwwwwwfw
+wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
+wfffffffwwfwwwwwwwwfwwfffffffw
+wfwwwwwfwwffffwwffffwwfwwwwwfw
+wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
+wfffffffwwwwwfwwfwwwwwfffffffw
+wwwwwwwfffffffffffmffffwwwwwww
+wwwwwwwfwwfwwwffwwwfwwfwwwwwww
+wwwwwwwfwwfwffffffwfwwfwwwwwww
+wwwwwwwfwwfwffffffwfwwfwwwwwww
+wfffffffwwfwffffffwfwwfffffffw
+wfwwwwwfwwfwffffffwfwwfwwwwwfw
+wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
+wffffwwfwwffffffffffwwfwwffffw
+wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+wfffffffffffffwwfffmfffffffffw
+wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+wfwwffffffffffwwffffffffffwwfw
+wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
+wpwwffffmfffffffffffffffffwwfw
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
+
+const levelsArray = [level1, level2];
 
 export enum REWARD {
     Monster = -50,
-    Wall = - 40,
+    Wall = -40,
     Food = 5
 }
 
@@ -111,10 +112,9 @@ export default class Game {
 
     score: number = 0;
     remainingFood: number = 0;
-    isStarted: boolean = false;
+    isPaused: boolean = true;
     gameSpeed: number = 100;
     currentLevel: number = 0;
-    isOver: boolean = false;
 
     pacman: Pacman;
     monstersArray: Monster[] = [];
@@ -126,14 +126,19 @@ export default class Game {
     movesLeft: number = 0;
     totalFoodEaten: number = 0;
     totalFood: number = 0;
+    stuckDeaths: number = 0;
     deaths: number = 0;
     finishes: number = 0;
 
-    private speedInput: HTMLInputElement;
+    
     private movesLeftSpan: HTMLElement;
     private deathCountSpan: HTMLElement;
     private foodPercentSpan: HTMLElement;
     private finishCountSpan: HTMLElement;
+    private stuckDeathCountSpan: HTMLElement;
+
+    private speedInput: HTMLInputElement;
+    private levelSelect: HTMLSelectElement;
 
     private _canvas: HTMLCanvasElement;
     private readonly _context: CanvasRenderingContext2D;
@@ -149,34 +154,43 @@ export default class Game {
 
         this.speedInput = document.getElementById("speed-input") as HTMLInputElement;
         this.speedInput.addEventListener("input", this.changeGameSpeed.bind(this));
+        this.levelSelect = document.getElementById("level-select") as HTMLSelectElement;
+        this.levelSelect.addEventListener("change", this.changeLevel.bind(this));
 
         this.movesLeftSpan = document.getElementById("moves-left");
         this.finishCountSpan = document.getElementById("finish-count");
         this.deathCountSpan = document.getElementById("death-count");
         this.foodPercentSpan = document.getElementById("food-percent");
         this.finishCountSpan = document.getElementById("finish-count");
+        this.stuckDeathCountSpan = document.getElementById("stuck-death-count");
 
+        for (let i = 0; i < levelsArray.length; i++) {
+            let value = i;
+            let text = "Level " + (i + 1);
+            let option = `<option value="${value}">${text}</option>`;
+            this.levelSelect.innerHTML += option;
+        }
         this.currentLevel = 1;
 
         this._loadLevel(this.currentLevel);
     }
 
-    private _startGame(): void {
-        if (!this.isStarted) {
-            this.isStarted = true;
+    private _unpauseGame(): void {
+        if (this.isPaused) {
+            this.isPaused = false;
             this._update();
             setTimeout(() => this._updateTimer(), this.gameSpeed);
         }
     }
 
-    private _stopGame(): void {
-        if (this.isStarted) {
-            this.isStarted = false;
+    private _pauseGame(): void {
+        if (!this.isPaused) {
+            this.isPaused = true;
         }
     }
 
     private _updateTimer(): void {
-        if (this.isStarted) {
+        if (!this.isPaused) {
             this._update();
             setTimeout(() => this._updateTimer(), this.gameSpeed);
         }
@@ -203,24 +217,31 @@ export default class Game {
             //     this.pacman.setNextDirection(DIR.Right);
             //     break;
             case " " || "Spacebar":
-                if (!this.isOver)
-                    this._startGame();
-                else {
-                    this._resetGame();
-                }
+                if (this.isPaused)
+                    this._unpauseGame();
+                else
+                    this._pauseGame();
                 break;
-            case "c":
-                this._stopGame();
             case "d":
-                this._update();
+                if (this.isPaused)
+                    this._update();
                 break;
             default:
                 break;
         }
     }
 
-    private _resetGame(): void {
-        this.movesLeft = 0;
+    private changeLevel(): void {
+        let level = +this.levelSelect.value;
+        this.currentLevel = level + 1;
+        if (this.isPaused) {
+            this._resetGame();
+        }
+    }
+
+    private _updateStatistics(): void {
+        if (this.movesLeft == 0)
+            this.stuckDeaths++;
         if (this.remainingFood == 0)
             this.finishes++;
         else
@@ -229,11 +250,14 @@ export default class Game {
         this.deathCountSpan.innerHTML = this.deaths.toString();
         this.foodPercentSpan.innerHTML = percent.toString();
         this.finishCountSpan.innerHTML = this.finishes.toString();
-        this.isOver = false;
+    }
+
+    private _resetGame(): void {
         this.pacman = undefined;
         this.cellArray = [];
         this.monstersArray = [];
         this.score = 0;
+        this.movesLeft = 0;
         this.remainingFood = 0;
         this._loadLevel(this.currentLevel);
     }
@@ -378,6 +402,7 @@ export default class Game {
         //console.log("reward:", reward);
         if (reward == REWARD.Monster || this.remainingFood == 0) {
             // console.log("reset action: ", action);
+            this._updateStatistics();
             this._resetGame();
         }
         let nextState = this.getCurrentState();

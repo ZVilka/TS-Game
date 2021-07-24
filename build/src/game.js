@@ -3,36 +3,6 @@ import Monster from "./monster.js";
 import Cell, { CELLTYPE } from "./cell.js";
 // import QLearner from "../lib/q-learning.js";
 // const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-// wfffffmfffffffwwfffffffffffffw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-// wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
-// wffffffffffwwfwwfwwffffffffffw
-// wfwwwwwfwwffffffffffwwmwwwwwfw
-// wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
-// wfffffffwwfwwwwwwwwfwwfffffffw
-// wfwwwwwfwwffffwwffffwwfwwwwwfw
-// wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
-// wfffffffwwwwwfwwfwwwwwfffffffw
-// wwwwwwwfffffffffffmffffwwwwwww
-// wwwwwwwfwwfwwwffwwwfwwfwwwwwww
-// wwwwwwwfwwfwffffffwfwwfwwwwwww
-// wwwwwwwfwwfwffffffwfwwfwwwwwww
-// wfffffffwwfwffffffwfwwfffffffw
-// wfwwwwwfwwfwffffffwfwwfwwwwwfw
-// wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
-// wffffwwfwwffffffffffwwfwwffffw
-// wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-// wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-// wfffffffffffffwwfffmfffffffffw
-// wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-// wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-// wfwwffffffffffwwffffffffffwwfw
-// wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
-// wpwwffffmfffffffffffffffffwwfw
-// wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
-// const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 // weeeeeeeeeeeeewweeeeeeeeeeeeew
 // wewwwwwewwwwwewwewwwwwewwwwwew
 // wewwwwwewwwwwewwewwwwwewwwwwew
@@ -92,7 +62,37 @@ wfwwffffffffffwwffffffffffwwfw
 wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
 wpwwffffffffffmfffffffffffwwfw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
-const levelsArray = [level1];
+const level2 = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+wfffffmfffffffwwfffffffffffffw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
+wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
+wffffffffffwwfwwfwwffffffffffw
+wfwwwwwfwwffffffffffwwmwwwwwfw
+wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
+wfffffffwwfwwwwwwwwfwwfffffffw
+wfwwwwwfwwffffwwffffwwfwwwwwfw
+wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
+wfffffffwwwwwfwwfwwwwwfffffffw
+wwwwwwwfffffffffffmffffwwwwwww
+wwwwwwwfwwfwwwffwwwfwwfwwwwwww
+wwwwwwwfwwfwffffffwfwwfwwwwwww
+wwwwwwwfwwfwffffffwfwwfwwwwwww
+wfffffffwwfwffffffwfwwfffffffw
+wfwwwwwfwwfwffffffwfwwfwwwwwfw
+wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
+wffffwwfwwffffffffffwwfwwffffw
+wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
+wfffffffffffffwwfffmfffffffffw
+wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
+wfwwffffffffffwwffffffffffwwfw
+wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
+wpwwffffmfffffffffffffffffwwfw
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
+const levelsArray = [level1, level2];
 export var REWARD;
 (function(REWARD) {
     REWARD[REWARD["Monster"] = -50] = "Monster";
@@ -103,10 +103,9 @@ export default class Game {
     constructor(w, h, speed) {
         this.score = 0;
         this.remainingFood = 0;
-        this.isStarted = false;
+        this.isPaused = true;
         this.gameSpeed = 100;
         this.currentLevel = 0;
-        this.isOver = false;
         this.monstersArray = [];
         this.cellArray = [];
         this.learner = new QLearner(0.1, 0.9);
@@ -114,6 +113,7 @@ export default class Game {
         this.movesLeft = 0;
         this.totalFoodEaten = 0;
         this.totalFood = 0;
+        this.stuckDeaths = 0;
         this.deaths = 0;
         this.finishes = 0;
         this.width = w;
@@ -124,28 +124,37 @@ export default class Game {
         document.addEventListener("keydown", this._onKeydown.bind(this));
         this.speedInput = document.getElementById("speed-input");
         this.speedInput.addEventListener("input", this.changeGameSpeed.bind(this));
+        this.levelSelect = document.getElementById("level-select");
+        this.levelSelect.addEventListener("change", this.changeLevel.bind(this));
         this.movesLeftSpan = document.getElementById("moves-left");
         this.finishCountSpan = document.getElementById("finish-count");
         this.deathCountSpan = document.getElementById("death-count");
         this.foodPercentSpan = document.getElementById("food-percent");
         this.finishCountSpan = document.getElementById("finish-count");
+        this.stuckDeathCountSpan = document.getElementById("stuck-death-count");
+        for (let i = 0; i < levelsArray.length; i++) {
+            let value = i;
+            let text = "Level " + (i + 1);
+            let option = `<option value="${value}">${text}</option>`;
+            this.levelSelect.innerHTML += option;
+        }
         this.currentLevel = 1;
         this._loadLevel(this.currentLevel);
     }
-    _startGame() {
-        if (!this.isStarted) {
-            this.isStarted = true;
+    _unpauseGame() {
+        if (this.isPaused) {
+            this.isPaused = false;
             this._update();
             setTimeout(() => this._updateTimer(), this.gameSpeed);
         }
     }
-    _stopGame() {
-        if (this.isStarted) {
-            this.isStarted = false;
+    _pauseGame() {
+        if (!this.isPaused) {
+            this.isPaused = true;
         }
     }
     _updateTimer() {
-        if (this.isStarted) {
+        if (!this.isPaused) {
             this._update();
             setTimeout(() => this._updateTimer(), this.gameSpeed);
         }
@@ -170,36 +179,44 @@ export default class Game {
             //     this.pacman.setNextDirection(DIR.Right);
             //     break;
             case " " || "Spacebar":
-                if (!this.isOver)
-                    this._startGame();
-                else {
-                    this._resetGame();
-                }
+                if (this.isPaused)
+                    this._unpauseGame();
+                else
+                    this._pauseGame();
                 break;
-            case "c":
-                this._stopGame();
             case "d":
-                this._update();
+                if (this.isPaused)
+                    this._update();
                 break;
             default:
                 break;
         }
     }
+    changeLevel() {
+        let level = +this.levelSelect.value;
+        this.currentLevel = level + 1;
+        if (this.isPaused) {
+            this._resetGame();
+        }
+    }
+    _updateStatistics() {
+        if (this.movesLeft == 0)
+            this.stuckDeaths++;
+        if (this.remainingFood == 0)
+            this.finishes++;
+        else
+            this.deaths++;
+        let percent = Math.floor(this.totalFoodEaten / this.totalFood * 100);
+        this.deathCountSpan.innerHTML = this.deaths.toString();
+        this.foodPercentSpan.innerHTML = percent.toString();
+        this.finishCountSpan.innerHTML = this.finishes.toString();
+    }
     _resetGame() {
-            this.movesLeft = 0;
-            if (this.remainingFood == 0)
-                this.finishes++;
-            else
-                this.deaths++;
-            let percent = Math.floor(this.totalFoodEaten / this.totalFood * 100);
-            this.deathCountSpan.innerHTML = this.deaths.toString();
-            this.foodPercentSpan.innerHTML = percent.toString();
-            this.finishCountSpan.innerHTML = this.finishes.toString();
-            this.isOver = false;
             this.pacman = undefined;
             this.cellArray = [];
             this.monstersArray = [];
             this.score = 0;
+            this.movesLeft = 0;
             this.remainingFood = 0;
             this._loadLevel(this.currentLevel);
         }
@@ -330,6 +347,7 @@ export default class Game {
         //console.log("reward:", reward);
         if (reward == REWARD.Monster || this.remainingFood == 0) {
             // console.log("reset action: ", action);
+            this._updateStatistics();
             this._resetGame();
         }
         let nextState = this.getCurrentState();

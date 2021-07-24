@@ -11,24 +11,37 @@
 </head>
 
 <body>
-    <p class="text">Нажмите пробел, чтобы начать игру</p>
-    <canvas id="field" class="field" width="600" height="600"></canvas>
-    <div>
-        <span class="text">Speed:</span><input id="speed-input" type=number autocomplete="off" value=200 step=10 min=10 max=1000>
+    <div class="info-board two">
+        <div>
+            <span>Осталось движений: </span><span id="moves-left">0</span>
+        </div>
+        <div>
+            <span>Процент съеденой еды: </span><span id="food-percent">0</span><span>%</span>
+        </div>
+        <div>
+            <span>Смертей: </span><span id="death-count">0</span>
+        </div>
+        <div>
+            <span>Побед: </span><span id="finish-count">0</span>
+        </div>
+        <div>
+            <span>Смертей от зацикливания: </span><span id="stuck-death-count">0</span>
+        </div>
     </div>
+    <div class="info-board">
+        <div> </div>
+        <canvas id="field" class="field" width="600" height="600"></canvas>
+        <div> </div>
 
-    <div class="text">
+    </div>
+    <div class="info-board two">
         <div>
-            <span>Moves left: </span><span id="moves-left">0</span>
+            <span>Скорость:</span><input id="speed-input" type=number autocomplete="off" value=200 step=5 min=5 max=1000>
         </div>
         <div>
-            <span>Deaths: </span><span id="death-count">0</span>
-        </div>
-        <div>
-            <span>Food percent: </span><span id="food-percent">0</span>%
-        </div>
-        <div>
-            <span>Finishes: </span><span id="finish-count">0</span>
+            <span>Уровень:</span>
+            <select id="level-select">
+        </select>
         </div>
     </div>
     <script type="module" src="./build/src/game.js"></script>
