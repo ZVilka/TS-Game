@@ -162,6 +162,7 @@ export default class Pacman implements IAgent {
 
     public eatFood(cell: Cell): void {
         this._game.totalFoodEaten++;
+        this._game.addMove();
         this._game.remainingFood--;
         cell.type = CELLTYPE.Empty;
     }

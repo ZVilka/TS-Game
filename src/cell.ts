@@ -79,19 +79,19 @@ export default class Cell {
         switch (this.type) {
             case CELLTYPE.Empty: {
                 this._drawRectangle("MediumBlue");
-                this._drawText(this.weight.toString(), "purple");
+                // this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.Food: {
                 this._drawRectangle("MediumBlue");
                 this._drawCircle('#cbcbd0');
-                this._drawText(this.weight.toString(), "purple");
+                // this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.Wall: {
                 this._drawRectangle("black");
                 this._drawImage('src/assets/img/wall.svg', this._cellSize);
-                this._drawText(this.weight.toString(), "purple");
+                // this._drawText(this.weight.toString(), "purple");
                 break;
             }
             default: {

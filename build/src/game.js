@@ -111,6 +111,7 @@ export default class Game {
         this.cellArray = [];
         this.learner = new QLearner(0.1, 0.9);
         this.exploration = 0.2;
+        this.movesLeft = 0;
         this.totalFoodEaten = 0;
         this.totalFood = 0;
         this.deaths = 0;
@@ -123,6 +124,8 @@ export default class Game {
         document.addEventListener("keydown", this._onKeydown.bind(this));
         this.speedInput = document.getElementById("speed-input");
         this.speedInput.addEventListener("input", this.changeGameSpeed.bind(this));
+        this.movesLeftSpan = document.getElementById("moves-left");
+        this.finishCountSpan = document.getElementById("finish-count");
         this.deathCountSpan = document.getElementById("death-count");
         this.foodPercentSpan = document.getElementById("food-percent");
         this.finishCountSpan = document.getElementById("finish-count");
@@ -183,6 +186,7 @@ export default class Game {
         }
     }
     _resetGame() {
+            this.movesLeft = 0;
             if (this.remainingFood == 0)
                 this.finishes++;
             else
@@ -217,6 +221,7 @@ export default class Game {
                 case "e":
                     let emptyCell = new Cell(col, row, CELLTYPE.Empty, this._context, this, objectSize);
                     this.cellArray[col][row] = emptyCell;
+                    this.movesLeft++;
                     symbolCounter++;
                     break;
                 case "w":
@@ -228,12 +233,14 @@ export default class Game {
                     let foodCell = new Cell(col, row, CELLTYPE.Food, this._context, this, objectSize);
                     this.cellArray[col][row] = foodCell;
                     this.remainingFood++;
+                    this.movesLeft++;
                     symbolCounter++;
                     break;
                 case "m":
                     let foodCellForMonster = new Cell(col, row, CELLTYPE.Food, this._context, this, objectSize);
                     this.cellArray[col][row] = foodCellForMonster;
                     this.remainingFood++;
+                    this.movesLeft++;
                     let monsterAgent = new Monster(col, row, this._context, this, objectSize);
                     monsterAgent.occupiedCell = foodCellForMonster;
                     this.monstersArray.push(monsterAgent);
@@ -242,13 +249,15 @@ export default class Game {
                 case "p":
                     let emptyCellPacman = new Cell(col, row, CELLTYPE.Empty, this._context, this, objectSize);
                     this.cellArray[col][row] = emptyCellPacman;
-                    let pacman = new Pacman(col, row, DIR.Right, this._context, this, objectSize);
+                    this.movesLeft++;
+                    let pacman = new Pacman(col, row, DIR.Up, this._context, this, objectSize);
                     pacman.occupiedCell = emptyCellPacman;
                     this.pacman = pacman;
                     symbolCounter++;
                     break;
             }
         }
+        this.movesLeftSpan.innerHTML = this.movesLeft.toString();
         this.totalFood += this.remainingFood;
         for (let monster of this.monstersArray) {
             monster.initDirection();
@@ -282,8 +291,8 @@ export default class Game {
             if (neighborCell.weight == REWARD.Monster)
                 typeStr += "m";
             let rankStr = rankedCells.indexOf(neighborCell).toString();
-            //state += typeStr + rankStr;
-            state += "type: " + typeStr + "rank:" + rankStr + "|";
+            state += typeStr + rankStr;
+            //state += "type: " + typeStr + "rank:" + rankStr + "|";
         }
         return state;
     }
@@ -307,14 +316,17 @@ export default class Game {
         }
         this.updateAllMonsters();
         this.updatePacman();
-        for (let row of this.cellArray) {
-            for (let cell of row)
-                cell.draw();
-        }
-        this.pacman.draw();
-        for (let monster of this.monstersArray) {
-            monster.draw();
-        }
+        this.removeMove();
+        if (this.movesLeft == 0)
+            reward = REWARD.Monster;
+        // for (let row of this.cellArray) {
+        //     for (let cell of row)
+        //         cell.draw();
+        // }
+        // this.pacman.draw();
+        // for (let monster of this.monstersArray) {
+        //     monster.draw();
+        // }
         //console.log("reward:", reward);
         if (reward == REWARD.Monster || this.remainingFood == 0) {
             // console.log("reset action: ", action);
@@ -328,15 +340,15 @@ export default class Game {
     updatePacman() {
         this.pacman.updateDirection();
         let prevPacCell = this.pacman.move();
-        // prevPacCell.draw();
-        // this.pacman.draw();
+        prevPacCell.draw();
+        this.pacman.draw();
         this.setWeightsForPacman();
     }
     updateAllMonsters() {
         for (let monster of this.monstersArray) {
             let prevCell = monster.move();
-            // prevCell.draw();
-            // monster.draw();
+            prevCell.draw();
+            monster.draw();
             //this.setWeightsForMonster(monster);
             monster.setWeights();
         }
@@ -400,6 +412,14 @@ export default class Game {
         // }
     getRandomNumber(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+    addMove() {
+        this.movesLeft++;
+        this.movesLeftSpan.innerHTML = this.movesLeft.toString();
+    }
+    removeMove() {
+        this.movesLeft--;
+        this.movesLeftSpan.innerHTML = this.movesLeft.toString();
     }
 }
 const game = new Game(30, 30, 200);
