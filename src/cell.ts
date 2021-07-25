@@ -98,12 +98,13 @@ export default class Cell {
         this._image = new Image();
         this._image.width = this._cellSize;
         this._image.height = this._cellSize;
-        if (this.type == CELLTYPE.Wall)
+        if (this.type == CELLTYPE.Wall) {
             this._image.src = "src/assets/img/wall.png";
         
-        this._image.onload = function(this : Cell) {
-            this.draw();
-        }.bind(this);
+            this._image.onload = function(this : Cell) {
+                this.draw();
+            }.bind(this);
+        }  
     }
     
 
@@ -166,7 +167,7 @@ export default class Cell {
         
         switch (this.type) {
             case CELLTYPE.Empty: {
-                this._drawRectangle("black");
+                this._drawRectangle("MediumBlue");
                 // this._drawText(this.weight.toString(), "purple");
                 break;
             }

@@ -1,9 +1,19 @@
 export var CELLTYPE;
-(function(CELLTYPE) {
+(function (CELLTYPE) {
     CELLTYPE[CELLTYPE["Empty"] = 0] = "Empty";
     CELLTYPE[CELLTYPE["Food"] = 1] = "Food";
     CELLTYPE[CELLTYPE["Wall"] = 2] = "Wall";
 })(CELLTYPE || (CELLTYPE = {}));
+var WALLTYPE;
+(function (WALLTYPE) {
+    WALLTYPE[WALLTYPE["Invisible"] = 0] = "Invisible";
+    WALLTYPE[WALLTYPE["Single"] = 1] = "Single";
+    WALLTYPE[WALLTYPE["End"] = 2] = "End";
+    WALLTYPE[WALLTYPE["Corner"] = 3] = "Corner";
+    WALLTYPE[WALLTYPE["TwoTube"] = 4] = "TwoTube";
+    WALLTYPE[WALLTYPE["ThreeTube"] = 5] = "ThreeTube";
+    WALLTYPE[WALLTYPE["FourTube"] = 6] = "FourTube";
+})(WALLTYPE || (WALLTYPE = {}));
 export default class Cell {
     constructor(x, y, type, context, game, sizeCell = 20) {
         this.weight = 0;
@@ -41,9 +51,7 @@ export default class Cell {
     getDistanceToFood(excludedCell = undefined, visited = undefined) {
         let queue = [this];
         if (visited == undefined)
-            visited = new Map([
-                [this, 0]
-            ]);
+            visited = new Map([[this, 0]]);
         let result = 1000;
         while (queue.length !== 0) {
             let v = queue.shift();
@@ -71,38 +79,87 @@ export default class Cell {
         this._image = new Image();
         this._image.width = this._cellSize;
         this._image.height = this._cellSize;
-        if (this.type == CELLTYPE.Wall)
+        if (this.type == CELLTYPE.Wall) {
             this._image.src = "src/assets/img/wall.png";
-        this._image.onload = function() {
-            this.draw();
-        }.bind(this);
+            this._image.onload = function () {
+                this.draw();
+            }.bind(this);
+        }
+    }
+    setWallImage() {
+        let neighborWallCount = 0;
+        let up = this._game.cellArray[this.x][this.y - 1] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x][this.y - 1].type;
+        let right = this._game.cellArray[this.x + 1][this.y] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x + 1][this.y].type;
+        let down = this._game.cellArray[this.x][this.y + 1] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x][this.y + 1].type;
+        let left = this._game.cellArray[this.x - 1][this.y] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x - 1][this.y].type;
+        let arr = [up, right, down, left];
+        let emptyCount = arr.filter((obj) => obj == CELLTYPE.Empty || obj == CELLTYPE.Food).length;
+        let wallType;
+        let wallSubstype;
+        switch (emptyCount) {
+            case 0:
+                wallType = WALLTYPE.Invisible;
+                break;
+            case 1:
+                for (let i = 0; i < 4; i++) {
+                    if (arr[i] == CELLTYPE.Empty) {
+                        wallType = WALLTYPE.TwoTube;
+                        wallSubstype = i;
+                        break;
+                    }
+                }
+                break;
+            case 2:
+                for (let i = 0; i < 4; i++) {
+                    let next = i + 1 > 3 ? i - 4 : i + 1;
+                    let next2 = i + 2 > 3 ? i - 4 : i + 1;
+                    if (arr[i] == CELLTYPE.Empty && arr[i] == arr[next]) {
+                        wallType = WALLTYPE.Corner;
+                        wallSubstype = i;
+                        break;
+                    }
+                    if (arr[i] == CELLTYPE.Empty && arr[i] == arr[next2]) {
+                        wallType = WALLTYPE.TwoTube;
+                        wallSubstype = i;
+                        break;
+                    }
+                }
+                break;
+            case 3:
+                for (let i = 0; i < 4; i++) {
+                    if (arr[i] != CELLTYPE.Empty) {
+                        wallType = WALLTYPE.End;
+                        wallSubstype = i;
+                    }
+                }
+                break;
+            case 4:
+                wallType = WALLTYPE.Single;
+                break;
+        }
     }
     draw() {
         switch (this.type) {
-            case CELLTYPE.Empty:
-                {
-                    this._drawRectangle("black");
-                    // this._drawText(this.weight.toString(), "purple");
-                    break;
-                }
-            case CELLTYPE.Food:
-                {
-                    this._drawRectangle("black");
-                    this._drawCircle('#cbcbd0');
-                    // this._drawText(this.weight.toString(), "purple");
-                    break;
-                }
-            case CELLTYPE.Wall:
-                {
-                    this._drawRectangle("MediumBlue");
-                    this._drawImage();
-                    // this._drawText(this.weight.toString(), "purple");
-                    break;
-                }
-            default:
-                {
-                    return;
-                }
+            case CELLTYPE.Empty: {
+                this._drawRectangle("MediumBlue");
+                // this._drawText(this.weight.toString(), "purple");
+                break;
+            }
+            case CELLTYPE.Food: {
+                this._drawRectangle("MediumBlue");
+                this._drawCircle('#cbcbd0');
+                // this._drawText(this.weight.toString(), "purple");
+                break;
+            }
+            case CELLTYPE.Wall: {
+                this._drawRectangle("MediumBlue");
+                this._drawImage();
+                // this._drawText(this.weight.toString(), "purple");
+                break;
+            }
+            default: {
+                return;
+            }
         }
     }
     _drawRectangle(color) {
@@ -121,7 +178,6 @@ export default class Cell {
     }
     _drawImage() {
         this._context.drawImage(this._image, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
-        this.context.drawImage()
     }
     _drawText(text, color) {
         this._context.fillStyle = color;
