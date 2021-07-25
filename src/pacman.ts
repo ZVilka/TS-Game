@@ -16,12 +16,13 @@ export default class Pacman implements IAgent {
     private _rotation: number = 0;
 
     private _direction: DIR;
-    private _nextDir: DIR;
+    public _nextDir: DIR;
     
     private readonly _cellSize: number;
     private readonly _game: Game;
 
-    public occupiedCell: Cell;
+    public previousCell: Cell;
+    public currentCell: Cell;
 
     private _image: HTMLImageElement;
     private _context: CanvasRenderingContext2D;
@@ -45,12 +46,12 @@ export default class Pacman implements IAgent {
 
     public updateDirection() :void {
         let destinationCell = this.getDestinationCell(this._nextDir);
-        // if (destinationCell.type !== CELLTYPE.Wall) {
-        //     this._direction = this._nextDir;
-        //     this._setRotation();
-        // }
-        this._direction = this._nextDir;
-        this._setRotation();
+        if (destinationCell.type !== CELLTYPE.Wall) {
+            this._direction = this._nextDir;
+            this._setRotation();
+        }
+        // this._direction = this._nextDir;
+        // this._setRotation();
 
         this._nextDir = this._direction;
     }
@@ -61,10 +62,13 @@ export default class Pacman implements IAgent {
 
     public setWeights(): void {
         let cellsToRank: Cell[] = [];
-        for (let neigh of this.occupiedCell.neighborArray) {
+        for (let neigh of this.currentCell.neighborArray) {
             if (neigh.weight == 0) {
                 switch(neigh.type) {
                     case CELLTYPE.Food:
+                        neigh.weight = REWARD.Food;
+                        break;
+                    case CELLTYPE.SuperFood:
                         neigh.weight = REWARD.Food;
                         break;
                     case CELLTYPE.Wall:
@@ -91,7 +95,7 @@ export default class Pacman implements IAgent {
     }
 
     public resetWeights(): void {
-        for (let neigh of this.occupiedCell.neighborArray) {
+        for (let neigh of this.currentCell.neighborArray) {
             neigh.resetWeightDistance();
         }
     }
@@ -107,24 +111,31 @@ export default class Pacman implements IAgent {
         return res;
     }
 
-    public move(): Cell {
-        let prevCell = this._game.cellArray[this.x][this.y];
+    public move(): void {
+        let prevCell = this.currentCell;
         let destinationCell = this.getDestinationCell(this._direction);
-
+        console.log(destinationCell.type);
         switch (destinationCell.type) {
             case CELLTYPE.Wall:
                 break;
             case CELLTYPE.Food:
-                this.occupiedCell = destinationCell;
+                this.previousCell = this.currentCell;
+                this.currentCell = destinationCell;
+                this._makeAStep();
+                this.eatFood(destinationCell);
+                break;
+            case CELLTYPE.SuperFood:
+                this.previousCell = this.currentCell;
+                this.currentCell = destinationCell;
                 this._makeAStep();
                 this.eatFood(destinationCell);
                 break;
             default:
-                this.occupiedCell = destinationCell;
+                this.previousCell = this.currentCell;
+                this.currentCell = destinationCell;
                 this._makeAStep();
                 break;
         }
-        return prevCell;
     }
 
     protected _makeAStep() :void {
@@ -189,6 +200,10 @@ export default class Pacman implements IAgent {
     }
 
     public eatFood(cell: Cell): void {
+        if (cell.type == CELLTYPE.SuperFood) {
+            this._game.isSuper = true;
+            this._game.superMovesLeft += 20;
+        }
         this._game.totalFoodEaten++;
         this._game.increaseMoveCount();
         this._game.remainingFood--;

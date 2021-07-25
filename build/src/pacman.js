@@ -26,12 +26,12 @@ export default class Pacman {
     }
     updateDirection() {
         let destinationCell = this.getDestinationCell(this._nextDir);
-        // if (destinationCell.type !== CELLTYPE.Wall) {
-        //     this._direction = this._nextDir;
-        //     this._setRotation();
-        // }
-        this._direction = this._nextDir;
-        this._setRotation();
+        if (destinationCell.type !== CELLTYPE.Wall) {
+            this._direction = this._nextDir;
+            this._setRotation();
+        }
+        // this._direction = this._nextDir;
+        // this._setRotation();
         this._nextDir = this._direction;
     }
     setNextDirection(dir) {
@@ -39,10 +39,13 @@ export default class Pacman {
     }
     setWeights() {
         let cellsToRank = [];
-        for (let neigh of this.occupiedCell.neighborArray) {
+        for (let neigh of this.currentCell.neighborArray) {
             if (neigh.weight == 0) {
                 switch (neigh.type) {
                     case CELLTYPE.Food:
+                        neigh.weight = REWARD.Food;
+                        break;
+                    case CELLTYPE.SuperFood:
                         neigh.weight = REWARD.Food;
                         break;
                     case CELLTYPE.Wall:
@@ -71,7 +74,7 @@ export default class Pacman {
         }
     }
     resetWeights() {
-        for (let neigh of this.occupiedCell.neighborArray) {
+        for (let neigh of this.currentCell.neighborArray) {
             neigh.resetWeightDistance();
         }
     }
@@ -86,22 +89,30 @@ export default class Pacman {
         return res;
     }
     move() {
-        let prevCell = this._game.cellArray[this.x][this.y];
+        let prevCell = this.currentCell;
         let destinationCell = this.getDestinationCell(this._direction);
+        console.log(destinationCell.type);
         switch (destinationCell.type) {
             case CELLTYPE.Wall:
                 break;
             case CELLTYPE.Food:
-                this.occupiedCell = destinationCell;
+                this.previousCell = this.currentCell;
+                this.currentCell = destinationCell;
+                this._makeAStep();
+                this.eatFood(destinationCell);
+                break;
+            case CELLTYPE.SuperFood:
+                this.previousCell = this.currentCell;
+                this.currentCell = destinationCell;
                 this._makeAStep();
                 this.eatFood(destinationCell);
                 break;
             default:
-                this.occupiedCell = destinationCell;
+                this.previousCell = this.currentCell;
+                this.currentCell = destinationCell;
                 this._makeAStep();
                 break;
         }
-        return prevCell;
     }
     _makeAStep() {
         switch (this._direction) {
@@ -161,6 +172,10 @@ export default class Pacman {
         }
     }
     eatFood(cell) {
+        if (cell.type == CELLTYPE.SuperFood) {
+            this._game.isSuper = true;
+            this._game.superMovesLeft += 20;
+        }
         this._game.totalFoodEaten++;
         this._game.increaseMoveCount();
         this._game.remainingFood--;

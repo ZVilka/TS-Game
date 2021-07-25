@@ -3,6 +3,7 @@ export var CELLTYPE;
     CELLTYPE[CELLTYPE["Empty"] = 0] = "Empty";
     CELLTYPE[CELLTYPE["Food"] = 1] = "Food";
     CELLTYPE[CELLTYPE["Wall"] = 2] = "Wall";
+    CELLTYPE[CELLTYPE["SuperFood"] = 3] = "SuperFood";
 })(CELLTYPE || (CELLTYPE = {}));
 var WALLTYPE;
 (function (WALLTYPE) {
@@ -64,7 +65,7 @@ export default class Cell {
                     result = firstPart + secondPart;
                     continue;
                 }
-                if (neighbor.type === CELLTYPE.Food) {
+                if (neighbor.type === CELLTYPE.Food || neighbor.type === CELLTYPE.SuperFood) {
                     return visited.get(v) + 1;
                 }
                 if (!visited.has(neighbor)) {
@@ -142,19 +143,25 @@ export default class Cell {
         switch (this.type) {
             case CELLTYPE.Empty: {
                 this._drawRectangle("MediumBlue");
-                // this._drawText(this.weight.toString(), "purple");
+                this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.Food: {
                 this._drawRectangle("MediumBlue");
                 this._drawCircle('#cbcbd0');
-                // this._drawText(this.weight.toString(), "purple");
+                this._drawText(this.weight.toString(), "purple");
+                break;
+            }
+            case CELLTYPE.SuperFood: {
+                this._drawRectangle("MediumBlue");
+                this._drawCircle('red');
+                this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.Wall: {
                 this._drawRectangle("MediumBlue");
                 this._drawImage();
-                // this._drawText(this.weight.toString(), "purple");
+                this._drawText(this.weight.toString(), "purple");
                 break;
             }
             default: {

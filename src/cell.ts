@@ -4,7 +4,8 @@ import IAgent from './IAgent.js';
 export enum CELLTYPE {
     Empty,
     Food,
-    Wall
+    Wall,
+    SuperFood
 }
 
 enum WALLTYPE {
@@ -82,7 +83,7 @@ export default class Cell {
                     result = firstPart + secondPart;
                     continue;
                 }
-                if (neighbor.type === CELLTYPE.Food) {
+                if (neighbor.type === CELLTYPE.Food || neighbor.type === CELLTYPE.SuperFood) {
                     return visited.get(v) + 1;
                 }
                 if (!visited.has(neighbor)) {
@@ -174,6 +175,12 @@ export default class Cell {
             case CELLTYPE.Food: {
                 this._drawRectangle("MediumBlue");
                 this._drawCircle('#cbcbd0');
+                // this._drawText(this.weight.toString(), "purple");
+                break;
+            }
+            case CELLTYPE.SuperFood: {
+                this._drawRectangle("MediumBlue");
+                this._drawCircle('red');
                 // this._drawText(this.weight.toString(), "purple");
                 break;
             }

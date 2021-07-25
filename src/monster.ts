@@ -16,7 +16,8 @@ export default class Monster implements IAgent {
     private _game: Game;
     private _isMoving: boolean;
 
-    public occupiedCell: Cell;
+    public previousCell: Cell;
+    public currentCell: Cell;
 
     private _image: HTMLImageElement;
 
@@ -37,8 +38,7 @@ export default class Monster implements IAgent {
         this._setImage();
     }
 
-    public move(): Cell {
-        let prevCell = this._game.cellArray[this.x][this.y];
+    public move(): void {
         if (this._isMoving) {
             let destinationCell = this.getDestinationCell();
 
@@ -47,20 +47,21 @@ export default class Monster implements IAgent {
                     this._direction = this._getNewDirection();
                     destinationCell = this.getDestinationCell();
 
-                    prevCell.hasMonster = false;
-                    this.occupiedCell = destinationCell;
-                    this.occupiedCell.hasMonster = true;
+                    this.previousCell = this.currentCell;
+                    this.previousCell.hasMonster = false;
+                    this.currentCell = destinationCell;
+                    this.currentCell.hasMonster = true;
                     this._makeAStep();
                     break;
                 default:
-                    prevCell.hasMonster = false;
-                    this.occupiedCell = destinationCell;
-                    this.occupiedCell.hasMonster = true;
+                    this.previousCell = this.currentCell;
+                    this.previousCell.hasMonster = false;
+                    this.currentCell = destinationCell;
+                    this.currentCell.hasMonster = true;
                     this._makeAStep();
                     break;
             }
         }
-        return prevCell;
     }
 
     protected _makeAStep() :void {
@@ -170,17 +171,17 @@ export default class Monster implements IAgent {
         }
     }
 
-    public setWeights(): void {
-        this.occupiedCell.weight = REWARD.Monster;
+    public setWeights(reward: REWARD = REWARD.Monster): void {
+        this.currentCell.weight = reward;
         let destinationCell = this.getDestinationCell();
         if (destinationCell.type == CELLTYPE.Wall)
             destinationCell = this.getDestinationCell(this._getNewDirection());
-        destinationCell.weight = REWARD.Monster;
+        destinationCell.weight = reward;
     }
 
     public resetWeights(): void {
-        this.occupiedCell.resetWeightDistance();
-        for (let neigh of this.occupiedCell.neighborArray) {
+        this.currentCell.resetWeightDistance();
+        for (let neigh of this.currentCell.neighborArray) {
             neigh.resetWeightDistance();
         }
     }

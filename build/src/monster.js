@@ -17,27 +17,27 @@ export default class Monster {
         this._setImage();
     }
     move() {
-        let prevCell = this._game.cellArray[this.x][this.y];
         if (this._isMoving) {
             let destinationCell = this.getDestinationCell();
             switch (destinationCell.type) {
                 case CELLTYPE.Wall:
                     this._direction = this._getNewDirection();
                     destinationCell = this.getDestinationCell();
-                    prevCell.hasMonster = false;
-                    this.occupiedCell = destinationCell;
-                    this.occupiedCell.hasMonster = true;
+                    this.previousCell = this.currentCell;
+                    this.previousCell.hasMonster = false;
+                    this.currentCell = destinationCell;
+                    this.currentCell.hasMonster = true;
                     this._makeAStep();
                     break;
                 default:
-                    prevCell.hasMonster = false;
-                    this.occupiedCell = destinationCell;
-                    this.occupiedCell.hasMonster = true;
+                    this.previousCell = this.currentCell;
+                    this.previousCell.hasMonster = false;
+                    this.currentCell = destinationCell;
+                    this.currentCell.hasMonster = true;
                     this._makeAStep();
                     break;
             }
         }
-        return prevCell;
     }
     _makeAStep() {
         switch (this._direction) {
@@ -138,16 +138,16 @@ export default class Monster {
                 break;
         }
     }
-    setWeights() {
-        this.occupiedCell.weight = REWARD.Monster;
+    setWeights(reward = REWARD.Monster) {
+        this.currentCell.weight = reward;
         let destinationCell = this.getDestinationCell();
         if (destinationCell.type == CELLTYPE.Wall)
             destinationCell = this.getDestinationCell(this._getNewDirection());
-        destinationCell.weight = REWARD.Monster;
+        destinationCell.weight = reward;
     }
     resetWeights() {
-        this.occupiedCell.resetWeightDistance();
-        for (let neigh of this.occupiedCell.neighborArray) {
+        this.currentCell.resetWeightDistance();
+        for (let neigh of this.currentCell.neighborArray) {
             neigh.resetWeightDistance();
         }
     }
