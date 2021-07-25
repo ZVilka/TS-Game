@@ -1,6 +1,5 @@
-import { REWARD } from './game.js';
 export var CELLTYPE;
-(function (CELLTYPE) {
+(function(CELLTYPE) {
     CELLTYPE[CELLTYPE["Empty"] = 0] = "Empty";
     CELLTYPE[CELLTYPE["Food"] = 1] = "Food";
     CELLTYPE[CELLTYPE["Wall"] = 2] = "Wall";
@@ -9,6 +8,7 @@ export default class Cell {
     constructor(x, y, type, context, game, sizeCell = 20) {
         this.weight = 0;
         this.distanceToFood = 1000;
+        this.hasMonster = false;
         this.neighborArray = [];
         this.x = x;
         this.y = y;
@@ -16,6 +16,7 @@ export default class Cell {
         this._context = context;
         this._cellSize = sizeCell;
         this._game = game;
+        this._setImage();
     }
     setNeighbors() {
         // for (let x=-1; x <=1; x++) {
@@ -34,21 +35,27 @@ export default class Cell {
         this.weight = 0;
         this.distanceToFood = 1000;
     }
-    setWeightForMonsterNeighbor() {
-        this.weight = REWARD.Monster;
-    }
     setDistanceToFood() {
         this.distanceToFood = this.getDistanceToFood();
     }
-    getDistanceToFood() {
-        let queue = [];
-        queue.push(this);
-        let visited = new Map([[this, 0]]);
+    getDistanceToFood(excludedCell = undefined, visited = undefined) {
+        let queue = [this];
+        if (visited == undefined)
+            visited = new Map([
+                [this, 0]
+            ]);
+        let result = 1000;
         while (queue.length !== 0) {
             let v = queue.shift();
             for (let neighbor of v.neighborArray) {
-                if (neighbor.type === CELLTYPE.Wall)
+                if (neighbor.type === CELLTYPE.Wall || neighbor == excludedCell)
                     continue;
+                if (neighbor.hasMonster) {
+                    let firstPart = visited.get(v) + 1;
+                    let secondPart = this.getDistanceToFood(neighbor, visited);
+                    result = firstPart + secondPart;
+                    continue;
+                }
                 if (neighbor.type === CELLTYPE.Food) {
                     return visited.get(v) + 1;
                 }
@@ -58,30 +65,44 @@ export default class Cell {
                 }
             }
         }
-        return -50;
+        return result;
+    }
+    _setImage() {
+        this._image = new Image();
+        this._image.width = this._cellSize;
+        this._image.height = this._cellSize;
+        if (this.type == CELLTYPE.Wall)
+            this._image.src = "src/assets/img/wall.png";
+        this._image.onload = function() {
+            this.draw();
+        }.bind(this);
     }
     draw() {
         switch (this.type) {
-            case CELLTYPE.Empty: {
-                this._drawRectangle("MediumBlue");
-                // this._drawText(this.weight.toString(), "purple");
-                break;
-            }
-            case CELLTYPE.Food: {
-                this._drawRectangle("MediumBlue");
-                this._drawCircle('#cbcbd0');
-                // this._drawText(this.weight.toString(), "purple");
-                break;
-            }
-            case CELLTYPE.Wall: {
-                this._drawRectangle("black");
-                this._drawImage('src/assets/img/wall.svg', this._cellSize);
-                // this._drawText(this.weight.toString(), "purple");
-                break;
-            }
-            default: {
-                return;
-            }
+            case CELLTYPE.Empty:
+                {
+                    this._drawRectangle("black");
+                    // this._drawText(this.weight.toString(), "purple");
+                    break;
+                }
+            case CELLTYPE.Food:
+                {
+                    this._drawRectangle("black");
+                    this._drawCircle('#cbcbd0');
+                    // this._drawText(this.weight.toString(), "purple");
+                    break;
+                }
+            case CELLTYPE.Wall:
+                {
+                    this._drawRectangle("MediumBlue");
+                    this._drawImage();
+                    // this._drawText(this.weight.toString(), "purple");
+                    break;
+                }
+            default:
+                {
+                    return;
+                }
         }
     }
     _drawRectangle(color) {
@@ -98,12 +119,9 @@ export default class Cell {
         this._context.strokeStyle = color;
         this._context.stroke();
     }
-    _drawImage(url, size) {
-        let img = new Image();
-        img.src = url;
-        img.onload = () => {
-            this._context.drawImage(img, this.x * this._cellSize, this.y * this._cellSize, size, size);
-        };
+    _drawImage() {
+        this._context.drawImage(this._image, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
+        this.context.drawImage()
     }
     _drawText(text, color) {
         this._context.fillStyle = color;

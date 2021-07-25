@@ -17,23 +17,27 @@ export default class Monster {
         this._setImage();
     }
     move() {
-        let lastCellMonster = this._game.cellArray[this.x][this.y];
-        let destinationCell = this.getDestinationCell();
+        let prevCell = this._game.cellArray[this.x][this.y];
         if (this._isMoving) {
+            let destinationCell = this.getDestinationCell();
             switch (destinationCell.type) {
                 case CELLTYPE.Wall:
                     this._direction = this._getNewDirection();
                     destinationCell = this.getDestinationCell();
+                    prevCell.hasMonster = false;
                     this.occupiedCell = destinationCell;
+                    this.occupiedCell.hasMonster = true;
                     this._makeAStep();
                     break;
                 default:
+                    prevCell.hasMonster = false;
                     this.occupiedCell = destinationCell;
+                    this.occupiedCell.hasMonster = true;
                     this._makeAStep();
                     break;
             }
         }
-        return lastCellMonster;
+        return prevCell;
     }
     _makeAStep() {
         switch (this._direction) {
@@ -53,24 +57,17 @@ export default class Monster {
                 break;
         }
     }
-    _setImage() {
-        this._image = new Image();
-        this._image.width = this._cellSize;
-        this._image.height = this._cellSize;
-        this._image.src = "src/assets/img/monster.svg";
-        this._image.onload = function () {
-            this.draw();
-        }.bind(this);
-    }
     initDirection() {
         let isHorAllowed = false;
         let isVertAllowed = false;
-        if (this._game.cellArray[this.x - 1][this.y].type === CELLTYPE.Food
-            || this._game.cellArray[this.x + 1][this.y].type === CELLTYPE.Food) {
+        let left = this._game.cellArray[this.x - 1][this.y];
+        let right = this._game.cellArray[this.x + 1][this.y];
+        let up = this._game.cellArray[this.x][this.y - 1];
+        let down = this._game.cellArray[this.x][this.y + 1];
+        if (left.type === CELLTYPE.Food || right.type === CELLTYPE.Food || left.type === CELLTYPE.Empty || right.type === CELLTYPE.Empty) {
             isHorAllowed = true;
         }
-        else if (this._game.cellArray[this.x][this.y + 1].type === CELLTYPE.Food
-            || this._game.cellArray[this.x][this.y - 1].type === CELLTYPE.Food) {
+        else if (up.type === CELLTYPE.Food || down.type === CELLTYPE.Food || up.type === CELLTYPE.Empty || down.type === CELLTYPE.Empty) {
             isVertAllowed = true;
         }
         if (!isHorAllowed && !isVertAllowed) {
@@ -148,7 +145,22 @@ export default class Monster {
             destinationCell = this.getDestinationCell(this._getNewDirection());
         destinationCell.weight = REWARD.Monster;
     }
-    draw(x = this.x, y = this.y) {
-        this._context.drawImage(this._image, x * this._cellSize, y * this._cellSize, this._cellSize, this._cellSize);
+    resetWeights() {
+        this.occupiedCell.resetWeightDistance();
+        for (let neigh of this.occupiedCell.neighborArray) {
+            neigh.resetWeightDistance();
+        }
+    }
+    _setImage() {
+        this._image = new Image();
+        this._image.width = this._cellSize;
+        this._image.height = this._cellSize;
+        this._image.src = "src/assets/img/monster.png";
+        this._image.onload = function () {
+            this.draw();
+        }.bind(this);
+    }
+    draw() {
+        this._context.drawImage(this._image, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
     }
 }

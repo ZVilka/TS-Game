@@ -1,3 +1,4 @@
+import { REWARD } from "./game.js";
 import { CELLTYPE } from "./cell.js";
 export var DIR;
 (function (DIR) {
@@ -16,11 +17,12 @@ export default class Pacman {
         this._context = ctx;
         this._cellSize = size;
         this._game = game;
-        this._image = new Image();
-        this._image.src = "src/assets/img/pacman.png";
-        this._image.onload = function () {
-            this.draw();
-        }.bind(this);
+        // this._image = new Image();
+        // this._image.src = "src/assets/img/pacman.png";
+        // this._image.onload = function (this : Pacman) {
+        //     this.draw();
+        // }.bind(this);
+        this._setImage();
     }
     updateDirection() {
         let destinationCell = this.getDestinationCell(this._nextDir);
@@ -34,6 +36,44 @@ export default class Pacman {
     }
     setNextDirection(dir) {
         this._nextDir = dir;
+    }
+    setWeights() {
+        let cellsToRank = [];
+        for (let neigh of this.occupiedCell.neighborArray) {
+            if (neigh.weight == 0) {
+                switch (neigh.type) {
+                    case CELLTYPE.Food:
+                        neigh.weight = REWARD.Food;
+                        break;
+                    case CELLTYPE.Wall:
+                        neigh.weight = REWARD.Wall;
+                        break;
+                    case CELLTYPE.Empty:
+                        neigh.setDistanceToFood();
+                        cellsToRank.push(neigh);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        let compareCellsByDistance = function (cell1, cell2) {
+            if (cell1.distanceToFood > cell2.distanceToFood)
+                return 1;
+            if (cell1.distanceToFood === cell2.distanceToFood)
+                return 0;
+            if (cell1.distanceToFood < cell2.distanceToFood)
+                return -1;
+        };
+        cellsToRank.sort(compareCellsByDistance);
+        for (let cell of cellsToRank) {
+            cell.weight = -cellsToRank.indexOf(cell) - 1;
+        }
+    }
+    resetWeights() {
+        for (let neigh of this.occupiedCell.neighborArray) {
+            neigh.resetWeightDistance();
+        }
     }
     getLegalActions() {
         let res = [];
@@ -102,16 +142,6 @@ export default class Pacman {
         }
         return this._game.cellArray[newX][newY];
     }
-    draw() {
-        let centerX = this.x * this._cellSize + this._cellSize / 2;
-        let centerY = this.y * this._cellSize + this._cellSize / 2;
-        let radRotation = this._rotation * Math.PI / 180;
-        this._context.translate(centerX, centerY);
-        this._context.rotate(radRotation);
-        this._context.drawImage(this._image, (-this._cellSize / 2), (-this._cellSize / 2), this._cellSize, this._cellSize);
-        this._context.rotate(-radRotation);
-        this._context.translate(-centerX, -centerY);
-    }
     _setRotation() {
         switch (this._direction) {
             case DIR.Up:
@@ -132,8 +162,27 @@ export default class Pacman {
     }
     eatFood(cell) {
         this._game.totalFoodEaten++;
-        this._game.addMove();
+        this._game.increaseMoveCount();
         this._game.remainingFood--;
         cell.type = CELLTYPE.Empty;
+    }
+    _setImage() {
+        this._image = new Image();
+        this._image.width = this._cellSize;
+        this._image.height = this._cellSize;
+        this._image.src = "src/assets/img/pacman.png";
+        this._image.onload = function () {
+            this.draw();
+        }.bind(this);
+    }
+    draw() {
+        let centerX = this.x * this._cellSize + this._cellSize / 2;
+        let centerY = this.y * this._cellSize + this._cellSize / 2;
+        let radRotation = this._rotation * Math.PI / 180;
+        this._context.translate(centerX, centerY);
+        this._context.rotate(radRotation);
+        this._context.drawImage(this._image, -this._cellSize / 2, -this._cellSize / 2, this._cellSize, this._cellSize);
+        this._context.rotate(-radRotation);
+        this._context.translate(-centerX, -centerY);
     }
 }

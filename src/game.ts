@@ -5,37 +5,6 @@ import IAgent from "./IAgent.js";
 import  QLearner from "../lib/q-learning.js";
 import { timeStamp } from "console";
 
-// const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-// weeeeeeeeeeeeewweeeeeeeeeeeeew
-// wewwwwwewwwwwewwewwwwwewwwwwew
-// wewwwwwewwwwwewwewwwwwewwwwwew
-// wewwwwwewwwwwewwewwwwwewwwwwew
-// wewwwwwewwwwwewwewwwwwewwwwwew
-// weeeeeeeeeewwewwewweeeeeeeeeew
-// wewwwwwewweeeeeeeeeewwewwwwwew
-// wewwwwwewwewwwwwwwwewwewwwwwew
-// weeeeeeewwewwwwwwwwewweeeeeeew
-// wewwwwwewweeeewweeeewwewwwwwew
-// wewwwwwewwwwwewwewwwwwewwwwwew
-// weeeeeeewwwwwewwewwwwweeeeeeew
-// wwwwwwweeeeeeeeeeeeeeeewwwwwww
-// wwwwwwwewwewwweewwwewwewwwwwww
-// wwwwwwwewweweeeeeewewwewwwwwww
-// wwwwwwwewweweeeeeewewwewwwwwww
-// weeeeeeewweweeeeeewewweeeeeeew
-// wewwwwwewweweeeeeewewwewwwwwew
-// wewwwwwewwewwweewwwewwewwwwwew
-// weeeewwewweeeeeeeeeewwewweeeew
-// wwwwewwewwewwwwwwwwewwewwewwww
-// wwwwewwewwewwwwwwwwewwewwewwww
-// weeeeeeeeeeeeewweeeeeeeeeeeeew
-// wewwwwwwwwwwwewwewwwwwwwwwwwew
-// wewwwwwwwwwwwewwewwwwwwwwwwwew
-// wewweeeeeeeeeewweeeeeeeeeewwew
-// wewwewwwwwwwwwwwwwwwwwwwwewwew
-// wewwpeeeeeeeeeeeeeeeeeeefmwwew
-// wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
-
 const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 wfffffffmfffffwwfffffmfffffffw
 wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
@@ -98,7 +67,38 @@ wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
 wpwwffffmfffffffffffffffffwwfw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 
-const levelsArray = [level1, level2];
+const level3: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+weeeeeeeeeeeeewweeeeeeeeeeeeew
+wewwwwwewwwwwewwewwwwwewwwwwew
+wewwwwwewwwwwewwewwwwwewwwwwew
+wewwwwwewwwwwewwewwwwwewwwwwew
+wewwwwwewwwwwewwewwwwwewwwwwew
+weeeeeeeeeewwewwewweeeeeeeeeew
+wewwwwwewweeeeeeeeeewwewwwwwew
+wewwwwwewwewwwwwwwwewwewwwwwew
+weeeeeeewwewwwwwwwwewweeeeeeew
+wewwwwwewweeeewweeeewwewwwwwew
+wewwwwwewwwwwewwewwwwwewwwwwew
+weeeeeeewwwwwewwewwwwweeeeeeew
+wwwwwwweeeeeeeeeeeeepeewwwwwww
+wwwwwwwewwewwweewwwewwewwwwwww
+wwwwwwwewweweeeeeewewwewwwwwww
+wwwwwwwewweweeeeeewewwewwwwwww
+weeeeeeewweweeeeeewewweeeeeeew
+wwwwwwwewweweeeeeewewwewwwwwew
+wwwwwwwewwewwweewwwmwwewwwwwew
+weeeeewewweeeeeeeeefwwewweeeew
+wewwwewewwewwwwwwwwfwwewwewwww
+wewwwewwwwwwwwwwwwwfwwewwewwww
+weeeeeeeeeeewewweeeeeeeeeeeeew
+wewwwwwwwwwwwewwewwwwwwwwwwwew
+wewwwwwwwwwwwewwewwwwwwwwwwwew
+wewweeeeeeeeeewweeeeeeeeeewwew
+wewwewwwwwwwwwwwwwwwwwwwwewwew
+wewweeeeeeeeeeeeeeeeeeeeeewwew
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
+
+const levelsArray = [level1, level2, level3];
 
 export enum REWARD {
     Monster = -50,
@@ -297,6 +297,7 @@ export default class Game {
                     break;
                 case "m":
                     let foodCellForMonster = new Cell(col, row, CELLTYPE.Food, this._context, this, objectSize);
+                    foodCellForMonster.hasMonster = true;
                     this.cellArray[col][row] = foodCellForMonster;
                     this.remainingFood++;
                     this.movesLeft++;
@@ -319,9 +320,10 @@ export default class Game {
         this.movesLeftSpan.innerHTML = this.movesLeft.toString();
         this.totalFood += this.remainingFood;
 
+        this.pacman.setWeights();
         for (let monster of this.monstersArray) {
             monster.initDirection();
-            this.setWeightsForMonster(monster);
+            monster.setWeights();
         }
 
         for (let arrCell of this.cellArray) {
@@ -331,8 +333,6 @@ export default class Game {
                     cell.setNeighbors();
             }
         }
-        this.setWeightsForPacman();
-        this.pacman.draw();
     }
 
     private getCurrentState(): string {
@@ -356,7 +356,6 @@ export default class Game {
             state += typeStr + rankStr;
             //state += "type: " + typeStr + "rank:" + rankStr + "|";
         }
-
         return state;
     }
 
@@ -372,23 +371,20 @@ export default class Game {
             //console.log("random action: ", action);
         }
 
-        //this.pacman.setNextDirection(+action);
         let nextCell = this.pacman.getDestinationCell(+action);
         this.pacman.setNextDirection(+action);
         let reward = nextCell.weight;
 
-        this.resetWeightsForAgent(this.pacman);
+        this.pacman.resetWeights();
         for (let monster of this.monstersArray) {
-            this.resetWeightsForAgent(monster);
+            monster.resetWeights();
         }
-
-        this.updateAllMonsters();
-        this.updatePacman();
-
-        this.removeMove();
 
         if (this.movesLeft == 0)
             reward = REWARD.Monster;
+
+        this.updateAllMonsters();
+        this.updatePacman();
 
         // for (let row of this.cellArray) {
         //     for (let cell of row)
@@ -399,79 +395,33 @@ export default class Game {
         //     monster.draw();
         // }
 
-        //console.log("reward:", reward);
         if (reward == REWARD.Monster || this.remainingFood == 0) {
-            // console.log("reset action: ", action);
             this._updateStatistics();
             this._resetGame();
         }
+
+        this.decreaseMoveCount();
+
         let nextState = this.getCurrentState();
-        //console.log("curr: ", currentState, "next: ", nextState, "reward: ", reward, "action: ", action);
         this.learner.add(currentState, nextState, reward, action);
 
         this.learner.learn(100);
     }
-
+    
     private updatePacman(): void {
         this.pacman.updateDirection();
-        let prevPacCell = this.pacman.move();
-        prevPacCell.draw();
+        let prevCell = this.pacman.move();
+        this.pacman.setWeights();
+        prevCell.draw();
         this.pacman.draw();
-        this.setWeightsForPacman();
     }
 
     private updateAllMonsters(): void {
         for (let monster of this.monstersArray) {
             let prevCell = monster.move();
+            monster.setWeights();
             prevCell.draw();
             monster.draw();
-            //this.setWeightsForMonster(monster);
-            monster.setWeights();
-        }
-    }
-
-    private resetWeightsForAgent(agent: IAgent): void {
-        agent.occupiedCell.resetWeightDistance();
-        for (let neigh of agent.occupiedCell.neighborArray) {
-            neigh.resetWeightDistance();
-        }
-    }
-
-    private setWeightsForPacman(): void {
-        let cellsToRank: Cell[] = [];
-        for (let neigh of this.pacman.occupiedCell.neighborArray) {
-            if (neigh.weight == 0) {
-                switch(neigh.type) {
-                    case CELLTYPE.Food:
-                        neigh.weight = REWARD.Food;
-                        break;
-                    case CELLTYPE.Wall:
-                        neigh.weight = REWARD.Wall;
-                        break;
-                    case CELLTYPE.Empty:
-                        neigh.setDistanceToFood();
-                        cellsToRank.push(neigh);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-        let compareCellsByDistance = function(cell1: Cell, cell2: Cell) {
-            if (cell1.distanceToFood > cell2.distanceToFood) return 1;
-            if (cell1.distanceToFood === cell2.distanceToFood) return 0;
-            if (cell1.distanceToFood < cell2.distanceToFood) return -1;
-        };
-        cellsToRank.sort(compareCellsByDistance);
-        for (let cell of cellsToRank) {
-            cell.weight = -cellsToRank.indexOf(cell) - 1;
-        }
-    }
-
-    private setWeightsForMonster(monster: Monster): void {
-        monster.occupiedCell.setWeightForMonsterNeighbor();
-        for (let neigh of monster.occupiedCell.neighborArray) {
-            neigh.setWeightForMonsterNeighbor();
         }
     }
 
@@ -493,12 +443,12 @@ export default class Game {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
-    public addMove(): void {
+    public increaseMoveCount(): void {
         this.movesLeft++;
         this.movesLeftSpan.innerHTML = this.movesLeft.toString();
     }
 
-    public removeMove(): void {
+    public decreaseMoveCount(): void {
         this.movesLeft--;
         this.movesLeftSpan.innerHTML = this.movesLeft.toString();
     }

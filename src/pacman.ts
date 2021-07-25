@@ -1,7 +1,6 @@
 import IAgent from "./IAgent.js";
-import Game from "./game.js";
+import Game, { REWARD } from "./game.js";
 import Cell, {CELLTYPE} from "./cell.js";
-import { runInThisContext } from "vm";
 
 export enum DIR {
     Up,
@@ -18,11 +17,15 @@ export default class Pacman implements IAgent {
 
     private _direction: DIR;
     private _nextDir: DIR;
-    private readonly _image: HTMLImageElement;
-    private _context: CanvasRenderingContext2D;
+    
     private readonly _cellSize: number;
     private readonly _game: Game;
+
     public occupiedCell: Cell;
+
+    private _image: HTMLImageElement;
+    private _context: CanvasRenderingContext2D;
+
     constructor(x: number, y: number, dir: DIR, ctx: CanvasRenderingContext2D, game: Game, size: number = 20) {
         this.x = x;
         this.y = y;
@@ -31,11 +34,13 @@ export default class Pacman implements IAgent {
         this._context = ctx;
         this._cellSize = size;
         this._game = game;
-        this._image = new Image();
-        this._image.src = "src/assets/img/pacman.png";
-        this._image.onload = function (this : Pacman) {
-            this.draw();
-        }.bind(this);
+        // this._image = new Image();
+        // this._image.src = "src/assets/img/pacman.png";
+        // this._image.onload = function (this : Pacman) {
+        //     this.draw();
+        // }.bind(this);
+
+        this._setImage();
     }
 
     public updateDirection() :void {
@@ -52,6 +57,43 @@ export default class Pacman implements IAgent {
 
     public setNextDirection(dir:DIR) :void {
         this._nextDir = dir;
+    }
+
+    public setWeights(): void {
+        let cellsToRank: Cell[] = [];
+        for (let neigh of this.occupiedCell.neighborArray) {
+            if (neigh.weight == 0) {
+                switch(neigh.type) {
+                    case CELLTYPE.Food:
+                        neigh.weight = REWARD.Food;
+                        break;
+                    case CELLTYPE.Wall:
+                        neigh.weight = REWARD.Wall;
+                        break;
+                    case CELLTYPE.Empty:
+                        neigh.setDistanceToFood();
+                        cellsToRank.push(neigh);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        let compareCellsByDistance = function(cell1: Cell, cell2: Cell) {
+            if (cell1.distanceToFood > cell2.distanceToFood) return 1;
+            if (cell1.distanceToFood === cell2.distanceToFood) return 0;
+            if (cell1.distanceToFood < cell2.distanceToFood) return -1;
+        };
+        cellsToRank.sort(compareCellsByDistance);
+        for (let cell of cellsToRank) {
+            cell.weight = -cellsToRank.indexOf(cell) - 1;
+        }
+    }
+
+    public resetWeights(): void {
+        for (let neigh of this.occupiedCell.neighborArray) {
+            neigh.resetWeightDistance();
+        }
     }
 
     public getLegalActions(): DIR[] {
@@ -127,20 +169,6 @@ export default class Pacman implements IAgent {
         return this._game.cellArray[newX][newY];
     }
 
-    public draw(): void {
-        let centerX = this.x * this._cellSize + this._cellSize/2;
-        let centerY = this.y * this._cellSize + this._cellSize/2;
-
-        let radRotation = this._rotation * Math.PI/180
-        this._context.translate(centerX, centerY);
-        this._context.rotate(radRotation);
-
-        this._context.drawImage(this._image, (-this._cellSize/2), (-this._cellSize/2), this._cellSize, this._cellSize);
-
-        this._context.rotate(-radRotation);
-        this._context.translate(-centerX, -centerY);
-    }
-
     protected _setRotation() :void {
         switch(this._direction) {
             case DIR.Up:
@@ -162,8 +190,32 @@ export default class Pacman implements IAgent {
 
     public eatFood(cell: Cell): void {
         this._game.totalFoodEaten++;
-        this._game.addMove();
+        this._game.increaseMoveCount();
         this._game.remainingFood--;
         cell.type = CELLTYPE.Empty;
+    }
+
+    protected _setImage() :void {
+        this._image = new Image();
+        this._image.width = this._cellSize;
+        this._image.height = this._cellSize;
+        this._image.src = "src/assets/img/pacman.png";
+        this._image.onload = function(this : Pacman) {
+            this.draw();
+        }.bind(this);
+    }
+
+    public draw(): void {
+        let centerX = this.x * this._cellSize + this._cellSize/2;
+        let centerY = this.y * this._cellSize + this._cellSize/2;
+
+        let radRotation = this._rotation * Math.PI/180
+        this._context.translate(centerX, centerY);
+        this._context.rotate(radRotation);
+
+        this._context.drawImage(this._image, -this._cellSize/2, -this._cellSize/2, this._cellSize, this._cellSize);
+
+        this._context.rotate(-radRotation);
+        this._context.translate(-centerX, -centerY);
     }
 }

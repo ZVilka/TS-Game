@@ -19,6 +19,7 @@ export default class Monster implements IAgent {
     public occupiedCell: Cell;
 
     private _image: HTMLImageElement;
+
     private _context: CanvasRenderingContext2D;
     private readonly _cellSize: number;
 
@@ -37,26 +38,29 @@ export default class Monster implements IAgent {
     }
 
     public move(): Cell {
-        let lastCellMonster = this._game.cellArray[this.x][this.y];
-
-        let destinationCell = this.getDestinationCell();
-
+        let prevCell = this._game.cellArray[this.x][this.y];
         if (this._isMoving) {
+            let destinationCell = this.getDestinationCell();
 
             switch (destinationCell.type) {
                 case CELLTYPE.Wall:
                     this._direction = this._getNewDirection();
                     destinationCell = this.getDestinationCell();
+
+                    prevCell.hasMonster = false;
                     this.occupiedCell = destinationCell;
+                    this.occupiedCell.hasMonster = true;
                     this._makeAStep();
                     break;
                 default:
+                    prevCell.hasMonster = false;
                     this.occupiedCell = destinationCell;
+                    this.occupiedCell.hasMonster = true;
                     this._makeAStep();
                     break;
             }
         }
-        return lastCellMonster;
+        return prevCell;
     }
 
     protected _makeAStep() :void {
@@ -78,25 +82,18 @@ export default class Monster implements IAgent {
         }
     }
 
-    protected _setImage() :void {
-        this._image = new Image();
-        this._image.width = this._cellSize;
-        this._image.height = this._cellSize;
-        this._image.src = "src/assets/img/monster.svg";
-        this._image.onload = function(this : Monster) {
-            this.draw();
-        }.bind(this);
-    }
-
     public initDirection() :void {
         let isHorAllowed : boolean = false;
         let isVertAllowed : boolean = false;
 
-        if (this._game.cellArray[this.x - 1][this.y].type === CELLTYPE.Food
-        || this._game.cellArray[this.x + 1][this.y].type === CELLTYPE.Food) {
+        let left = this._game.cellArray[this.x - 1][this.y];
+        let right = this._game.cellArray[this.x + 1][this.y];
+        let up = this._game.cellArray[this.x][this.y - 1];
+        let down = this._game.cellArray[this.x][this.y + 1];
+
+        if (left.type === CELLTYPE.Food || right.type === CELLTYPE.Food || left.type === CELLTYPE.Empty || right.type === CELLTYPE.Empty) {
             isHorAllowed = true;
-        } else if (this._game.cellArray[this.x][this.y + 1].type === CELLTYPE.Food
-            || this._game.cellArray[this.x][this.y - 1].type === CELLTYPE.Food) {
+        } else if (up.type === CELLTYPE.Food || down.type === CELLTYPE.Food || up.type === CELLTYPE.Empty || down.type === CELLTYPE.Empty) {
             isVertAllowed = true;
         }
 
@@ -181,9 +178,24 @@ export default class Monster implements IAgent {
         destinationCell.weight = REWARD.Monster;
     }
 
-    public draw(x:number = this.x, y:number = this.y): void {
-        this._context.drawImage(this._image,
-            x * this._cellSize, y * this._cellSize,
-            this._cellSize, this._cellSize);
+    public resetWeights(): void {
+        this.occupiedCell.resetWeightDistance();
+        for (let neigh of this.occupiedCell.neighborArray) {
+            neigh.resetWeightDistance();
+        }
+    }
+
+    protected _setImage() :void {
+        this._image = new Image();
+        this._image.width = this._cellSize;
+        this._image.height = this._cellSize;
+        this._image.src = "src/assets/img/monster.png";
+        this._image.onload = function(this : Monster) {
+            this.draw();
+        }.bind(this);
+    }
+
+    public draw(): void {
+        this._context.drawImage(this._image, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
     }
 }

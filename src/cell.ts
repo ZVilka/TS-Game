@@ -7,15 +7,28 @@ export enum CELLTYPE {
     Wall
 }
 
+enum WALLTYPE {
+    Invisible,
+    Single,
+    End,
+    Corner,
+    TwoTube,
+    ThreeTube,
+    FourTube
+}
+
 export default class Cell {
     x: number;
     y: number;
     type: CELLTYPE;
     weight: number = 0;
     distanceToFood: number = 1000;
+    public hasMonster: boolean = false;
     private readonly _cellSize: number;
     private _game: Game;
     neighborArray: Cell[] = [];
+
+    private _image: HTMLImageElement;
 
     private _context: CanvasRenderingContext2D;
 
@@ -26,6 +39,8 @@ export default class Cell {
         this._context = context;
         this._cellSize = sizeCell;
         this._game = game;
+
+        this._setImage();
     }
 
     public setNeighbors(): void {
@@ -47,22 +62,26 @@ export default class Cell {
         this.distanceToFood = 1000;
     }
 
-    public setWeightForMonsterNeighbor(): void {
-        this.weight = REWARD.Monster;
-    }
-
     public setDistanceToFood(): void {
         this.distanceToFood = this.getDistanceToFood();
     }
 
-    public getDistanceToFood(): number {
-        let queue : Cell[] = [];
-        queue.push(this);
-        let visited = new Map<Cell, number>([[this, 0]]);
+    private getDistanceToFood(excludedCell: Cell = undefined, visited: Map<Cell, number> = undefined): number {
+        let queue : Cell[] = [this];
+        if (visited == undefined)
+            visited = new Map<Cell, number>([[this, 0]]);
+
+        let result: number = 1000;
         while (queue.length !== 0) {
             let v = queue.shift();
             for (let neighbor of v.neighborArray) {
-                if (neighbor.type === CELLTYPE.Wall) continue;
+                if (neighbor.type === CELLTYPE.Wall || neighbor == excludedCell) continue;
+                if (neighbor.hasMonster) {
+                    let firstPart = visited.get(v) + 1;
+                    let secondPart = this.getDistanceToFood(neighbor, visited);
+                    result = firstPart + secondPart;
+                    continue;
+                }
                 if (neighbor.type === CELLTYPE.Food) {
                     return visited.get(v) + 1;
                 }
@@ -72,13 +91,82 @@ export default class Cell {
                 }
             }
         }
-        return -50;
+        return result;
+    }
+
+    protected _setImage() :void {
+        this._image = new Image();
+        this._image.width = this._cellSize;
+        this._image.height = this._cellSize;
+        if (this.type == CELLTYPE.Wall)
+            this._image.src = "src/assets/img/wall.png";
+        
+        this._image.onload = function(this : Cell) {
+            this.draw();
+        }.bind(this);
+    }
+    
+
+    private setWallImage(): void {
+        let neighborWallCount: number = 0;
+            
+        let up = this._game.cellArray[this.x][this.y - 1] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x][this.y - 1].type;
+        let right = this._game.cellArray[this.x + 1][this.y] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x + 1][this.y].type;
+        let down = this._game.cellArray[this.x][this.y + 1] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x][this.y + 1].type;
+        let left = this._game.cellArray[this.x - 1][this.y] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x - 1][this.y].type;
+        let arr = [up, right, down, left];
+        let emptyCount = arr.filter((obj) => obj == CELLTYPE.Empty || obj == CELLTYPE.Food).length;
+        let wallType: WALLTYPE;
+        let wallSubstype: number;
+        switch(emptyCount) {
+            case 0:
+                wallType = WALLTYPE.Invisible;
+                break;
+            case 1:
+                for (let i = 0; i < 4; i++) {
+                    if (arr[i] == CELLTYPE.Empty) {
+                        wallType = WALLTYPE.TwoTube;
+                        wallSubstype = i;
+                        break;
+                    }
+                }
+                break;
+            case 2:
+                for (let i = 0; i < 4; i++) {
+                    let next = i + 1 > 3 ? i - 4 : i + 1;
+                    let next2 = i + 2 > 3 ? i - 4 : i + 1;
+                    if (arr[i] == CELLTYPE.Empty && arr[i] == arr[next]) {
+                        wallType = WALLTYPE.Corner;
+                        wallSubstype = i;
+                        break;
+                    }
+                    if (arr[i] == CELLTYPE.Empty && arr[i] == arr[next2]) {
+                        wallType = WALLTYPE.TwoTube;
+                        wallSubstype = i;
+                        break;
+                    }
+                }
+                break;
+            case 3:
+                for (let i = 0; i < 4; i++) {
+                    if (arr[i] != CELLTYPE.Empty) {
+                        wallType = WALLTYPE.End;
+                        wallSubstype = i;
+                    }
+                }
+                break;
+            case 4:
+                wallType = WALLTYPE.Single;
+                break;
+        }
+        
     }
 
     public draw(): void {
+        
         switch (this.type) {
             case CELLTYPE.Empty: {
-                this._drawRectangle("MediumBlue");
+                this._drawRectangle("black");
                 // this._drawText(this.weight.toString(), "purple");
                 break;
             }
@@ -89,8 +177,8 @@ export default class Cell {
                 break;
             }
             case CELLTYPE.Wall: {
-                this._drawRectangle("black");
-                this._drawImage('src/assets/img/wall.svg', this._cellSize);
+                this._drawRectangle("MediumBlue");
+                this._drawImage();
                 // this._drawText(this.weight.toString(), "purple");
                 break;
             }
@@ -117,12 +205,8 @@ export default class Cell {
         this._context.stroke();
     }
 
-    protected _drawImage(url: string, size: number) {
-        let img = new Image();
-        img.src = url;
-        img.onload = () => {
-            this._context.drawImage(img, this.x * this._cellSize, this.y * this._cellSize, size, size);
-        }
+    protected _drawImage() {
+        this._context.drawImage(this._image, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
     }
 
     protected _drawText(text: string, color: string) {
