@@ -11,7 +11,7 @@ wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
 wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
 wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
 wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-wffffffffffwwfwwfwwffffffffffw
+wffffffsfffwwfwwfwwfffsffffffw
 wfwwwwwfwwfffffmffffwwfwwwwwfw
 wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
 wfffffffwwfwwwwwwwwfwwfffffffw
@@ -28,7 +28,7 @@ wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
 wffffwwfwwffffffffffwwfwwffffw
 wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
 wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-wfffffffffffffwwfffffffffffffw
+wfffffffffsfffwwffffffsffffffw
 wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
 wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
 wfwwffffffffffwwffffffffffwwfw
@@ -207,18 +207,18 @@ export default class Game {
     // TODO: Действия с клавиатуры
     private _onKeydown(event: KeyboardEvent) :void {
         switch(event.key) {
-            case "ArrowUp":
-                this.pacman.setNextDirection(DIR.Up);
-                break;
-            case "ArrowDown":
-                this.pacman.setNextDirection(DIR.Down);
-                break;
-            case "ArrowLeft":
-                this.pacman.setNextDirection(DIR.Left);
-                break;
-            case "ArrowRight":
-                this.pacman.setNextDirection(DIR.Right);
-                break;
+            // case "ArrowUp":
+            //     this.pacman.setNextDirection(DIR.Up);
+            //     break;
+            // case "ArrowDown":
+            //     this.pacman.setNextDirection(DIR.Down);
+            //     break;
+            // case "ArrowLeft":
+            //     this.pacman.setNextDirection(DIR.Left);
+            //     break;
+            // case "ArrowRight":
+            //     this.pacman.setNextDirection(DIR.Right);
+            //     break;
             case " " || "Spacebar":
                 if (this.isPaused)
                     this._unpauseGame();
@@ -263,6 +263,8 @@ export default class Game {
         this.score = 0;
         this.movesLeft = 0;
         this.remainingFood = 0;
+        this.superMovesLeft = 0;
+        this.isSuper = false;
         this._loadLevel(this.currentLevel);
     }
 
@@ -384,20 +386,21 @@ export default class Game {
             //console.log("random action: ", action);
         }
 
-        action = this.pacman._nextDir;
+        //action = this.pacman._nextDir;
 
         let nextCell = this.pacman.getDestinationCell(+action);
-        //this.pacman.setNextDirection(+action);
+        this.pacman.setNextDirection(+action);
         let reward = nextCell.weight;
-        console.log(reward);
 
         this.pacman.resetWeights();
         for (let monster of this.monstersArray) {
             monster.resetWeights();
         }
 
-        if (this.movesLeft == 0)
-            reward = REWARD.Monster;
+        if (this.movesLeft == 0 || this.remainingFood == 0) {
+            this._updateStatistics();
+            this._resetGame();
+        }
 
         this.updateAllMonsters();
         this.updatePacman();
@@ -416,7 +419,7 @@ export default class Game {
 
         if (this.isSuper) {
             this.superMovesLeft--;
-            console.log(this.superMovesLeft);
+            //console.log(this.superMovesLeft);
         }
 
         if (this.superMovesLeft == 0)
@@ -431,10 +434,7 @@ export default class Game {
         //     monster.draw();
         // }
 
-        if (this.remainingFood == 0) {
-            this._updateStatistics();
-            this._resetGame();
-        }
+        
 
         this.decreaseMoveCount();
 

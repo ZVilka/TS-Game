@@ -46,13 +46,15 @@ export default class Cell {
         this.weight = 0;
         this.distanceToFood = 1000;
     }
-    setDistanceToFood() {
-        this.distanceToFood = this.getDistanceToFood();
+    setDistanceToFood(cell) {
+        this.distanceToFood = this.getDistanceToFood(undefined, undefined, cell);
     }
-    getDistanceToFood(excludedCell = undefined, visited = undefined) {
+    getDistanceToFood(excludedCell = undefined, visited = undefined, centerCell = undefined) {
         let queue = [this];
         if (visited == undefined)
             visited = new Map([[this, 0]]);
+        if (centerCell != undefined)
+            visited.set(centerCell, 0);
         let result = 1000;
         while (queue.length !== 0) {
             let v = queue.shift();
@@ -143,25 +145,25 @@ export default class Cell {
         switch (this.type) {
             case CELLTYPE.Empty: {
                 this._drawRectangle("MediumBlue");
-                this._drawText(this.weight.toString(), "purple");
+                // this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.Food: {
                 this._drawRectangle("MediumBlue");
                 this._drawCircle('#cbcbd0');
-                this._drawText(this.weight.toString(), "purple");
+                // this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.SuperFood: {
                 this._drawRectangle("MediumBlue");
                 this._drawCircle('red');
-                this._drawText(this.weight.toString(), "purple");
+                // this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.Wall: {
                 this._drawRectangle("MediumBlue");
                 this._drawImage();
-                this._drawText(this.weight.toString(), "purple");
+                // this._drawText(this.weight.toString(), "purple");
                 break;
             }
             default: {

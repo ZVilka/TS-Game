@@ -63,15 +63,16 @@ export default class Cell {
         this.distanceToFood = 1000;
     }
 
-    public setDistanceToFood(): void {
-        this.distanceToFood = this.getDistanceToFood();
+    public setDistanceToFood(cell: Cell): void {
+        this.distanceToFood = this.getDistanceToFood(undefined, undefined, cell);
     }
 
-    private getDistanceToFood(excludedCell: Cell = undefined, visited: Map<Cell, number> = undefined): number {
+    private getDistanceToFood(excludedCell: Cell = undefined, visited: Map<Cell, number> = undefined, centerCell: Cell = undefined): number {
         let queue : Cell[] = [this];
         if (visited == undefined)
             visited = new Map<Cell, number>([[this, 0]]);
-
+        if (centerCell != undefined)
+            visited.set(centerCell, 0);
         let result: number = 1000;
         while (queue.length !== 0) {
             let v = queue.shift();

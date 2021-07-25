@@ -52,7 +52,7 @@ export default class Pacman {
                         neigh.weight = REWARD.Wall;
                         break;
                     case CELLTYPE.Empty:
-                        neigh.setDistanceToFood();
+                        neigh.setDistanceToFood(this.currentCell);
                         cellsToRank.push(neigh);
                         break;
                     default:
@@ -89,9 +89,7 @@ export default class Pacman {
         return res;
     }
     move() {
-        let prevCell = this.currentCell;
         let destinationCell = this.getDestinationCell(this._direction);
-        console.log(destinationCell.type);
         switch (destinationCell.type) {
             case CELLTYPE.Wall:
                 break;
