@@ -1,4 +1,4 @@
-import IAgent from "./IAgent.js";
+import Agent from "./Agent.js";
 import Game, { REWARD } from "./game.js";
 import Cell, {CELLTYPE} from "./cell.js";
 
@@ -9,39 +9,23 @@ export enum DIR {
     Left
 }
 
-export default class Pacman implements IAgent {
-    x: number;
-    y: number;
-
+export default class Pacman extends Agent {
+    public isSuper: boolean = false;
+    public superMovesLeft: number = 0;
     private _rotation: number = 0;
-
-    private _direction: DIR;
     public _nextDir: DIR;
-    
-    private readonly _cellSize: number;
-    private readonly _game: Game;
 
-    public previousCell: Cell;
-    public currentCell: Cell;
-
-    private _image: HTMLImageElement;
-    private _context: CanvasRenderingContext2D;
+    private superSource: string;
+    private movesPerSuperfood: number = 20;
 
     constructor(x: number, y: number, dir: DIR, ctx: CanvasRenderingContext2D, game: Game, size: number = 20) {
-        this.x = x;
-        this.y = y;
+        super(x, y, ctx, game, size);
         this._direction = dir;
         this._nextDir = dir;
-        this._context = ctx;
-        this._cellSize = size;
-        this._game = game;
-        // this._image = new Image();
-        // this._image.src = "src/assets/img/pacman.png";
-        // this._image.onload = function (this : Pacman) {
-        //     this.draw();
-        // }.bind(this);
 
-        this._setImage();
+        this.defaultSource = "src/assets/img/pacman.png";
+        this.superSource = "src/assets/img/pacman-super.png"
+        this._setImage(this.defaultSource);
     }
 
     public updateDirection() :void {
@@ -50,9 +34,7 @@ export default class Pacman implements IAgent {
             this._direction = this._nextDir;
             this._setRotation();
         }
-        // this._direction = this._nextDir;
-        // this._setRotation();
-
+        
         this._nextDir = this._direction;
     }
 
@@ -60,6 +42,7 @@ export default class Pacman implements IAgent {
         this._nextDir = dir;
     }
 
+    // Установить веса соседних клеток, если клетка пустая - то высчитать дистанцию до ближайшей еды
     public setWeights(): void {
         let cellsToRank: Cell[] = [];
         for (let neigh of this.currentCell.neighborArray) {
@@ -83,20 +66,16 @@ export default class Pacman implements IAgent {
                 }
             }
         }
+        // Отсортировать соседние клетки по возрастанию дистанции до еды, и поставить им ранг. Ближайшая до еды клетка получит ранг 0, и т.д.
         let compareCellsByDistance = function(cell1: Cell, cell2: Cell) {
             if (cell1.distanceToFood > cell2.distanceToFood) return 1;
             if (cell1.distanceToFood === cell2.distanceToFood) return 0;
             if (cell1.distanceToFood < cell2.distanceToFood) return -1;
         };
         cellsToRank.sort(compareCellsByDistance);
+        // Вес = rank * -1 - 1. Ближайшая клетка будет равна -1, вторая -2 и т.д.
         for (let cell of cellsToRank) {
             cell.weight = -cellsToRank.indexOf(cell) - 1;
-        }
-    }
-
-    public resetWeights(): void {
-        for (let neigh of this.currentCell.neighborArray) {
-            neigh.resetWeightDistance();
         }
     }
 
@@ -117,65 +96,20 @@ export default class Pacman implements IAgent {
             case CELLTYPE.Wall:
                 break;
             case CELLTYPE.Food:
-                this.previousCell = this.currentCell;
-                this.currentCell = destinationCell;
-                this._makeAStep();
-                this.eatFood(destinationCell);
-                break;
             case CELLTYPE.SuperFood:
-                this.previousCell = this.currentCell;
-                this.currentCell = destinationCell;
-                this._makeAStep();
+                this._makeAStep(destinationCell);
                 this.eatFood(destinationCell);
                 break;
             default:
-                this.previousCell = this.currentCell;
-                this.currentCell = destinationCell;
-                this._makeAStep();
+                this._makeAStep(destinationCell);
                 break;
         }
     }
 
-    protected _makeAStep() :void {
-        switch (this._direction) {
-            case DIR.Up:
-                this.y--;
-                break;
-            case DIR.Down:
-                this.y++;
-                break;
-            case DIR.Left:
-                this.x--;
-                break;
-            case DIR.Right:
-                this.x++;
-                break;
-            default:
-                break;
-        }
-    }
-
-    public getDestinationCell(direction:DIR = this._direction): Cell {
-        let newX = this.x;
-        let newY = this.y;
-
-        switch(direction) {
-            case DIR.Up:
-                newY--;
-                break;
-            case DIR.Down:
-                newY++;
-                break;
-            case DIR.Left:
-                newX--;
-                break;
-            case DIR.Right:
-                newX++;
-                break;
-            default:
-                throw "Invalid direction!";
-        }
-        return this._game.cellArray[newX][newY];
+    public _makeAStep(destinationCell: Cell): void {
+        this.previousCell = this.currentCell;
+        this.currentCell = destinationCell;
+        this._changeCoordinates();
     }
 
     protected _setRotation() :void {
@@ -199,23 +133,27 @@ export default class Pacman implements IAgent {
 
     public eatFood(cell: Cell): void {
         if (cell.type == CELLTYPE.SuperFood) {
-            this._game.isSuper = true;
-            this._game.superMovesLeft += 20;
+            this.makeSuper();
+            this.updateSuperMoveCount(this.movesPerSuperfood);
         }
         this._game.totalFoodEaten++;
-        this._game.increaseMoveCount();
+        this._game.updateMoveCount(1);
         this._game.remainingFood--;
         cell.type = CELLTYPE.Empty;
     }
 
-    protected _setImage() :void {
-        this._image = new Image();
-        this._image.width = this._cellSize;
-        this._image.height = this._cellSize;
-        this._image.src = "src/assets/img/pacman.png";
-        this._image.onload = function(this : Pacman) {
-            this.draw();
-        }.bind(this);
+    public updateSuperMoveCount(incr: number): void {
+        this.superMovesLeft += incr;
+    }
+
+    public makeSuper(): void {
+        this.isSuper = true;
+        this._image.src = this.superSource;
+    }
+
+    public stopSuper(): void {
+        this.isSuper = false;
+        this._image.src = this.defaultSource;
     }
 
     public draw(): void {

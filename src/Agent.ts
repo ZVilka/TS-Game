@@ -1,22 +1,47 @@
+import Cell from "./cell.js";
+import Game from "./game.js";
 import { DIR } from "./pacman.js";
-export default class IAgent {
-    constructor(x, y, ctx, game, size = 20) {
+
+export default abstract class Agent {
+    public x: number;
+    public y: number;
+
+    protected _direction: DIR;
+
+    public currentCell: Cell;
+    public previousCell: Cell;
+
+    protected readonly _cellSize: number;
+    protected readonly _game: Game;
+
+    protected defaultSource: string;
+    protected _image: HTMLImageElement;
+    protected _context: CanvasRenderingContext2D;
+
+    constructor(x: number, y: number, ctx: CanvasRenderingContext2D, game: Game, size: number = 20) {
         this.x = x;
         this.y = y;
         this._context = ctx;
         this._game = game;
         this._cellSize = size;
     }
-    resetWeights() {
+
+    abstract move(): void;
+
+    public abstract setWeights(): void;
+
+    public resetWeights(): void {
         this.currentCell.resetWeightDistance();
         for (let neigh of this.currentCell.neighborArray) {
             neigh.resetWeightDistance();
         }
     }
-    getDestinationCell(direction = this._direction) {
+
+    public getDestinationCell(direction:DIR = this._direction): Cell {
         let newX = this.x;
         let newY = this.y;
-        switch (direction) {
+
+        switch(direction) {
             case DIR.Up:
                 newY--;
                 break;
@@ -34,7 +59,8 @@ export default class IAgent {
         }
         return this._game.cellArray[newX][newY];
     }
-    _changeCoordinates() {
+
+    public _changeCoordinates() :void {
         switch (this._direction) {
             case DIR.Up:
                 this.y--;
@@ -52,13 +78,18 @@ export default class IAgent {
                 break;
         }
     }
-    _setImage(source) {
+
+    protected abstract _makeAStep(destinationCell: Cell): void;
+
+    protected _setImage(source: string) :void {
         this._image = new Image();
         this._image.width = this._cellSize;
         this._image.height = this._cellSize;
         this._image.src = source;
-        this._image.onload = function () {
+        this._image.onload = function(this : Agent) {
             this.draw();
         }.bind(this);
     }
+
+    public abstract draw(): void;
 }

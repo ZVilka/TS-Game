@@ -5,18 +5,8 @@ export var CELLTYPE;
     CELLTYPE[CELLTYPE["Wall"] = 2] = "Wall";
     CELLTYPE[CELLTYPE["SuperFood"] = 3] = "SuperFood";
 })(CELLTYPE || (CELLTYPE = {}));
-var WALLTYPE;
-(function (WALLTYPE) {
-    WALLTYPE[WALLTYPE["Invisible"] = 0] = "Invisible";
-    WALLTYPE[WALLTYPE["Single"] = 1] = "Single";
-    WALLTYPE[WALLTYPE["End"] = 2] = "End";
-    WALLTYPE[WALLTYPE["Corner"] = 3] = "Corner";
-    WALLTYPE[WALLTYPE["TwoTube"] = 4] = "TwoTube";
-    WALLTYPE[WALLTYPE["ThreeTube"] = 5] = "ThreeTube";
-    WALLTYPE[WALLTYPE["FourTube"] = 6] = "FourTube";
-})(WALLTYPE || (WALLTYPE = {}));
 export default class Cell {
-    constructor(x, y, type, context, game, sizeCell = 20) {
+    constructor(x, y, type, context, game, drawSize = 20) {
         this.weight = 0;
         this.distanceToFood = 1000;
         this.hasMonster = false;
@@ -25,7 +15,7 @@ export default class Cell {
         this.y = y;
         this.type = type;
         this._context = context;
-        this._cellSize = sizeCell;
+        this._drawSize = drawSize;
         this._game = game;
         this._setImage();
     }
@@ -49,6 +39,7 @@ export default class Cell {
     setDistanceToFood(cell) {
         this.distanceToFood = this.getDistanceToFood(undefined, undefined, cell);
     }
+    // Поиском в ширину найти дистанцию до ближайшей еды. Путь к ближайшей еде блокирует монстр - найти дистанцию до второй по близости еды.
     getDistanceToFood(excludedCell = undefined, visited = undefined, centerCell = undefined) {
         let queue = [this];
         if (visited == undefined)
@@ -59,14 +50,17 @@ export default class Cell {
         while (queue.length !== 0) {
             let v = queue.shift();
             for (let neighbor of v.neighborArray) {
+                // Поиск идет только по пустым клеткам
                 if (neighbor.type === CELLTYPE.Wall || neighbor == excludedCell)
                     continue;
+                // Если встречен монстр, посчитать дистанцию до монстра, рекурсивно найти дистанцию от монстра до ближайшей еды, и сложить их
                 if (neighbor.hasMonster) {
                     let firstPart = visited.get(v) + 1;
                     let secondPart = this.getDistanceToFood(neighbor, visited);
                     result = firstPart + secondPart;
                     continue;
                 }
+                // Если встречена еда, то вернуть дистанцию до нее
                 if (neighbor.type === CELLTYPE.Food || neighbor.type === CELLTYPE.SuperFood) {
                     return visited.get(v) + 1;
                 }
@@ -76,12 +70,13 @@ export default class Cell {
                 }
             }
         }
+        // Если после нахождения еды, находящейся за монстром, не была встречена другая еда, то вернется расстояние до еды, находящейся за монстром
         return result;
     }
     _setImage() {
         this._image = new Image();
-        this._image.width = this._cellSize;
-        this._image.height = this._cellSize;
+        this._image.width = this._drawSize;
+        this._image.height = this._drawSize;
         if (this.type == CELLTYPE.Wall) {
             this._image.src = "src/assets/img/wall.png";
             this._image.onload = function () {
@@ -89,79 +84,25 @@ export default class Cell {
             }.bind(this);
         }
     }
-    setWallImage() {
-        let neighborWallCount = 0;
-        let up = this._game.cellArray[this.x][this.y - 1] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x][this.y - 1].type;
-        let right = this._game.cellArray[this.x + 1][this.y] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x + 1][this.y].type;
-        let down = this._game.cellArray[this.x][this.y + 1] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x][this.y + 1].type;
-        let left = this._game.cellArray[this.x - 1][this.y] == undefined ? CELLTYPE.Empty : this._game.cellArray[this.x - 1][this.y].type;
-        let arr = [up, right, down, left];
-        let emptyCount = arr.filter((obj) => obj == CELLTYPE.Empty || obj == CELLTYPE.Food).length;
-        let wallType;
-        let wallSubstype;
-        switch (emptyCount) {
-            case 0:
-                wallType = WALLTYPE.Invisible;
-                break;
-            case 1:
-                for (let i = 0; i < 4; i++) {
-                    if (arr[i] == CELLTYPE.Empty) {
-                        wallType = WALLTYPE.TwoTube;
-                        wallSubstype = i;
-                        break;
-                    }
-                }
-                break;
-            case 2:
-                for (let i = 0; i < 4; i++) {
-                    let next = i + 1 > 3 ? i - 4 : i + 1;
-                    let next2 = i + 2 > 3 ? i - 4 : i + 1;
-                    if (arr[i] == CELLTYPE.Empty && arr[i] == arr[next]) {
-                        wallType = WALLTYPE.Corner;
-                        wallSubstype = i;
-                        break;
-                    }
-                    if (arr[i] == CELLTYPE.Empty && arr[i] == arr[next2]) {
-                        wallType = WALLTYPE.TwoTube;
-                        wallSubstype = i;
-                        break;
-                    }
-                }
-                break;
-            case 3:
-                for (let i = 0; i < 4; i++) {
-                    if (arr[i] != CELLTYPE.Empty) {
-                        wallType = WALLTYPE.End;
-                        wallSubstype = i;
-                    }
-                }
-                break;
-            case 4:
-                wallType = WALLTYPE.Single;
-                break;
-        }
-    }
     draw() {
+        // drawText нужен для отрисовки весов (дебаггинг)
+        this._drawRectangle("MediumBlue");
         switch (this.type) {
-            case CELLTYPE.Empty: {
-                this._drawRectangle("MediumBlue");
-                // this._drawText(this.weight.toString(), "purple");
-                break;
-            }
+            // case CELLTYPE.Empty: {
+            //     // this._drawText(this.weight.toString(), "purple");
+            //     break;
+            // }
             case CELLTYPE.Food: {
-                this._drawRectangle("MediumBlue");
-                this._drawCircle('#cbcbd0');
+                this._drawCircle("#cbcbd0");
                 // this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.SuperFood: {
-                this._drawRectangle("MediumBlue");
-                this._drawCircle('red');
+                this._drawCircle("red", 1.5);
                 // this._drawText(this.weight.toString(), "purple");
                 break;
             }
             case CELLTYPE.Wall: {
-                this._drawRectangle("MediumBlue");
                 this._drawImage();
                 // this._drawText(this.weight.toString(), "purple");
                 break;
@@ -173,12 +114,12 @@ export default class Cell {
     }
     _drawRectangle(color) {
         this._context.fillStyle = color;
-        this._context.fillRect(this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
+        this._context.fillRect(this.x * this._drawSize, this.y * this._drawSize, this._drawSize, this._drawSize);
     }
-    _drawCircle(color) {
-        const middleOfCellSize = this._cellSize / 2;
+    _drawCircle(color, radiusMultiplier = 1) {
+        const middleOfCellSize = this._drawSize / 2;
         this._context.beginPath();
-        this._context.arc(this.x * this._cellSize + middleOfCellSize, this.y * this._cellSize + middleOfCellSize, middleOfCellSize / 2, 0, 2 * Math.PI, false);
+        this._context.arc(this.x * this._drawSize + middleOfCellSize, this.y * this._drawSize + middleOfCellSize, middleOfCellSize / 2 * radiusMultiplier, 0, 2 * Math.PI, false);
         this._context.fillStyle = color;
         this._context.fill();
         this._context.lineWidth = 1;
@@ -186,10 +127,10 @@ export default class Cell {
         this._context.stroke();
     }
     _drawImage() {
-        this._context.drawImage(this._image, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
+        this._context.drawImage(this._image, this.x * this._drawSize, this.y * this._drawSize, this._drawSize, this._drawSize);
     }
     _drawText(text, color) {
         this._context.fillStyle = color;
-        this._context.fillText(text, this.x * this._cellSize + 5, this.y * this._cellSize + 8);
+        this._context.fillText(text, this.x * this._drawSize + 5, this.y * this._drawSize + 8);
     }
 }

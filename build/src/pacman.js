@@ -1,3 +1,4 @@
+import Agent from "./Agent.js";
 import { REWARD } from "./game.js";
 import { CELLTYPE } from "./cell.js";
 export var DIR;
@@ -7,22 +8,18 @@ export var DIR;
     DIR[DIR["Down"] = 2] = "Down";
     DIR[DIR["Left"] = 3] = "Left";
 })(DIR || (DIR = {}));
-export default class Pacman {
+export default class Pacman extends Agent {
     constructor(x, y, dir, ctx, game, size = 20) {
+        super(x, y, ctx, game, size);
+        this.isSuper = false;
+        this.superMovesLeft = 0;
         this._rotation = 0;
-        this.x = x;
-        this.y = y;
+        this.movesPerSuperfood = 20;
         this._direction = dir;
         this._nextDir = dir;
-        this._context = ctx;
-        this._cellSize = size;
-        this._game = game;
-        // this._image = new Image();
-        // this._image.src = "src/assets/img/pacman.png";
-        // this._image.onload = function (this : Pacman) {
-        //     this.draw();
-        // }.bind(this);
-        this._setImage();
+        this.defaultSource = "src/assets/img/pacman.png";
+        this.superSource = "src/assets/img/pacman-super.png";
+        this._setImage(this.defaultSource);
     }
     updateDirection() {
         let destinationCell = this.getDestinationCell(this._nextDir);
@@ -30,13 +27,12 @@ export default class Pacman {
             this._direction = this._nextDir;
             this._setRotation();
         }
-        // this._direction = this._nextDir;
-        // this._setRotation();
         this._nextDir = this._direction;
     }
     setNextDirection(dir) {
         this._nextDir = dir;
     }
+    // Установить веса соседних клеток, если клетка пустая - то высчитать дистанцию до ближайшей еды
     setWeights() {
         let cellsToRank = [];
         for (let neigh of this.currentCell.neighborArray) {
@@ -60,6 +56,7 @@ export default class Pacman {
                 }
             }
         }
+        // Отсортировать соседние клетки по возрастанию дистанции до еды, и поставить им ранг. Ближайшая до еды клетка получит ранг 0, и т.д.
         let compareCellsByDistance = function (cell1, cell2) {
             if (cell1.distanceToFood > cell2.distanceToFood)
                 return 1;
@@ -69,13 +66,9 @@ export default class Pacman {
                 return -1;
         };
         cellsToRank.sort(compareCellsByDistance);
+        // Вес = rank * -1 - 1. Ближайшая клетка будет равна -1, вторая -2 и т.д.
         for (let cell of cellsToRank) {
             cell.weight = -cellsToRank.indexOf(cell) - 1;
-        }
-    }
-    resetWeights() {
-        for (let neigh of this.currentCell.neighborArray) {
-            neigh.resetWeightDistance();
         }
     }
     getLegalActions() {
@@ -94,62 +87,19 @@ export default class Pacman {
             case CELLTYPE.Wall:
                 break;
             case CELLTYPE.Food:
-                this.previousCell = this.currentCell;
-                this.currentCell = destinationCell;
-                this._makeAStep();
-                this.eatFood(destinationCell);
-                break;
             case CELLTYPE.SuperFood:
-                this.previousCell = this.currentCell;
-                this.currentCell = destinationCell;
-                this._makeAStep();
+                this._makeAStep(destinationCell);
                 this.eatFood(destinationCell);
                 break;
             default:
-                this.previousCell = this.currentCell;
-                this.currentCell = destinationCell;
-                this._makeAStep();
+                this._makeAStep(destinationCell);
                 break;
         }
     }
-    _makeAStep() {
-        switch (this._direction) {
-            case DIR.Up:
-                this.y--;
-                break;
-            case DIR.Down:
-                this.y++;
-                break;
-            case DIR.Left:
-                this.x--;
-                break;
-            case DIR.Right:
-                this.x++;
-                break;
-            default:
-                break;
-        }
-    }
-    getDestinationCell(direction = this._direction) {
-        let newX = this.x;
-        let newY = this.y;
-        switch (direction) {
-            case DIR.Up:
-                newY--;
-                break;
-            case DIR.Down:
-                newY++;
-                break;
-            case DIR.Left:
-                newX--;
-                break;
-            case DIR.Right:
-                newX++;
-                break;
-            default:
-                throw "Invalid direction!";
-        }
-        return this._game.cellArray[newX][newY];
+    _makeAStep(destinationCell) {
+        this.previousCell = this.currentCell;
+        this.currentCell = destinationCell;
+        this._changeCoordinates();
     }
     _setRotation() {
         switch (this._direction) {
@@ -171,22 +121,24 @@ export default class Pacman {
     }
     eatFood(cell) {
         if (cell.type == CELLTYPE.SuperFood) {
-            this._game.isSuper = true;
-            this._game.superMovesLeft += 20;
+            this.makeSuper();
+            this.updateSuperMoveCount(this.movesPerSuperfood);
         }
         this._game.totalFoodEaten++;
-        this._game.increaseMoveCount();
+        this._game.updateMoveCount(1);
         this._game.remainingFood--;
         cell.type = CELLTYPE.Empty;
     }
-    _setImage() {
-        this._image = new Image();
-        this._image.width = this._cellSize;
-        this._image.height = this._cellSize;
-        this._image.src = "src/assets/img/pacman.png";
-        this._image.onload = function () {
-            this.draw();
-        }.bind(this);
+    updateSuperMoveCount(incr) {
+        this.superMovesLeft += incr;
+    }
+    makeSuper() {
+        this.isSuper = true;
+        this._image.src = this.superSource;
+    }
+    stopSuper() {
+        this.isSuper = false;
+        this._image.src = this.defaultSource;
     }
     draw() {
         let centerX = this.x * this._cellSize + this._cellSize / 2;

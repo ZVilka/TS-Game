@@ -1,5 +1,5 @@
 import { DIR } from "./pacman.js";
-export default class IAgent {
+export default class Agent {
     constructor(x, y, ctx, game, size = 20) {
         this.x = x;
         this.y = y;

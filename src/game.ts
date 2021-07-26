@@ -1,9 +1,7 @@
 import Pacman, {DIR} from "./pacman.js";
 import Monster from "./monster.js";
 import Cell, {CELLTYPE} from "./cell.js";
-import IAgent from "./IAgent.js";
 import  QLearner from "../lib/q-learning.js";
-import { timeStamp } from "console";
 
 const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 wfffffffmfffffwwfffffmfffffffw
@@ -116,8 +114,6 @@ export default class Game {
     isPaused: boolean = true;
     gameSpeed: number = 100;
     currentLevel: number = 0;
-    isSuper: boolean = false;
-    superMovesLeft: number = 0;
 
     pacman: Pacman;
     monstersArray: Monster[] = [];
@@ -132,7 +128,6 @@ export default class Game {
     stuckDeaths: number = 0;
     deaths: number = 0;
     finishes: number = 0;
-
     
     private movesLeftSpan: HTMLElement;
     private deathCountSpan: HTMLElement;
@@ -156,9 +151,9 @@ export default class Game {
         document.addEventListener("keydown", this._onKeydown.bind(this));
 
         this.speedInput = document.getElementById("speed-input") as HTMLInputElement;
-        this.speedInput.addEventListener("input", this.changeGameSpeed.bind(this));
+        this.speedInput.addEventListener("input", this._changeGameSpeed.bind(this));
         this.levelSelect = document.getElementById("level-select") as HTMLSelectElement;
-        this.levelSelect.addEventListener("change", this.changeLevel.bind(this));
+        this.levelSelect.addEventListener("change", this._changeLevel.bind(this));
 
         this.movesLeftSpan = document.getElementById("moves-left");
         this.finishCountSpan = document.getElementById("finish-count");
@@ -199,12 +194,11 @@ export default class Game {
         }
     }
 
-    private changeGameSpeed(): void {
+    private _changeGameSpeed(): void {
         let newSpeed = parseFloat(this.speedInput.value);
         this.gameSpeed = newSpeed;
     }
 
-    // TODO: Действия с клавиатуры
     private _onKeydown(event: KeyboardEvent) :void {
         switch(event.key) {
             // case "ArrowUp":
@@ -234,7 +228,7 @@ export default class Game {
         }
     }
 
-    private changeLevel(): void {
+    private _changeLevel(): void {
         let level = +this.levelSelect.value;
         this.currentLevel = level + 1;
         if (this.isPaused) {
@@ -263,12 +257,10 @@ export default class Game {
         this.score = 0;
         this.movesLeft = 0;
         this.remainingFood = 0;
-        this.superMovesLeft = 0;
-        this.isSuper = false;
         this._loadLevel(this.currentLevel);
     }
 
-    // TODO: Добавить размеры объектов в конструкторы, weight клетки
+    // Загрузка уровня по строке
     private _loadLevel(lvlNumber: number): void {
         let objectSize = 20;
         let level = levelsArray[lvlNumber - 1];
@@ -348,9 +340,11 @@ export default class Game {
         }
     }
 
-    private getCurrentState(): string {
+    // Представление текущего состояния в виде описания четырех соседних клеток пакмана
+    private _getCurrentState(): string {
         let rankedCells: Cell[] = [...this.pacman.currentCell.neighborArray];
 
+        // Сортирует веса соседних клеток пакмена по убыванию и расставляет им ранг от 0 до 3
         let compareCells = function(cell1: Cell, cell2: Cell) {
             if (cell1.weight > cell2.weight) return -1;
             if (cell1.weight === cell2.weight) return 0;
@@ -363,11 +357,14 @@ export default class Game {
         for (let i = 0; i < 4; i++) {
             let neighborCell = this.pacman.currentCell.neighborArray[i];
             let typeStr = neighborCell.type.toString();
+            // Если соседняя клетка - монстр, то добавить букву m
             if (neighborCell.weight == REWARD.Monster)
                 typeStr += "m";
+            // Если соседняя клетка - монстр, но съедена супер-еда, то добавить букву s
             if (neighborCell.weight == REWARD.SuperMonster)
                 typeStr += "s";
             let rankStr = rankedCells.indexOf(neighborCell).toString();
+            // Состояние - тип соседней клетки, и ее ранг, например 11 32 33 34 означает, что сверху пакмена еда, а с других сторон - стены
             state += typeStr + rankStr;
             //state += "type: " + typeStr + "rank:" + rankStr + "|";
         }
@@ -375,39 +372,104 @@ export default class Game {
     }
 
     private _update(): void {
-        let currentState = this.getCurrentState();
+        // Получить текущее состояние и лучшее действие. Действия - это повороты пакмена
+        let currentState = this._getCurrentState();
         let action: number | string = this.learner.bestAction(currentState);
 
+        // Выбрать рандомное действие из возможных
         let legalActions = this.pacman.getLegalActions();
         let rand = this.getRandomNumber(0, legalActions.length - 1);
         let randomAction = legalActions[rand];
+        // Если лучшего действия не существует, или лернер не знает награду за рандомное действие, то выполняется рандомное действие
         if (action === null || action === undefined || (!this.learner.knowsAction(currentState, randomAction) && Math.random() < game.exploration)) {
             action = randomAction;
-            //console.log("random action: ", action);
         }
 
+        // Нужно для ручного управления
         //action = this.pacman._nextDir;
 
+        // Выполнить действие (повернуть пакмена) и узнать награду
         let nextCell = this.pacman.getDestinationCell(+action);
         this.pacman.setNextDirection(+action);
         let reward = nextCell.weight;
 
+        // Если не осталось еды, то загрузить уровень заново
+        if (this.remainingFood == 0) {
+            this._updateStatistics();
+            this._resetGame();
+        }
+        // Если кончились движения, то установить награду в -50 и загрузить заново
+        if (this.movesLeft == 0) {
+            this._updateStatistics();
+            this._resetGame();
+            reward = REWARD.Monster;
+        }
+
+        // Двинуть всех агентов, пересчитать веса, перерисовать
+        this._doAllAgentsMove();
+        // Если было столкновение пакмана и монстра - перезагрузить уровень
+        this._checkCollision();
+
+        // Обновить супер-режим
+        if (this.pacman.isSuper) {
+            this.pacman.updateSuperMoveCount(-1);
+            if (this.pacman.superMovesLeft == 0)
+                this.pacman.stopSuper();
+        }
+        
+        // Если нужно рисовать веса клеток
+        //this._redrawWholeField();
+
+        // Уменьшить колличество движений
+        this.updateMoveCount(-1);
+
+        // Получить следующее состояние и обучить лернера
+        let nextState = this._getCurrentState();
+        this.learner.add(currentState, nextState, reward, action);
+        this.learner.learn(100);
+    }
+
+    private _doAllAgentsMove(): void {
         this.pacman.resetWeights();
         for (let monster of this.monstersArray) {
             monster.resetWeights();
         }
-
-        if (this.movesLeft == 0 || this.remainingFood == 0) {
-            this._updateStatistics();
-            this._resetGame();
+        this._updateAllMonsters();
+        this._updatePacman();
+        this.pacman.draw();
+        for (let monster of this.monstersArray) {
+            monster.draw();
         }
+    }
+    
+    private _updatePacman(): void {
+        this.pacman.updateDirection();
+        this.pacman.move();
+        this.pacman.setWeights();
+        this.pacman.previousCell.draw();
+    }
 
-        this.updateAllMonsters();
-        this.updatePacman();
+    private _updateAllMonsters(): void {
+        for (let monster of this.monstersArray) {
+            monster.move();
+            let monsterReward = REWARD.Monster;
+            if (this.pacman.isSuper)
+                monsterReward = REWARD.SuperMonster;
+            monster.setWeights(monsterReward);
+            monster.previousCell.draw();
+        }
+    }
 
-        let collisionMonster = this.checkCollision(); 
+    private _checkCollision(): void {
+        let collisionMonster: Monster | undefined = undefined;
+        for (let monster of this.monstersArray) {
+            if (monster.previousCell == this.pacman.currentCell
+                || monster.currentCell == this.pacman.currentCell) {
+                    collisionMonster = monster;
+                }
+        }
         if (collisionMonster) {
-            if (this.isSuper) {
+            if (this.pacman.isSuper) {
                 collisionMonster.currentCell.draw();
                 let idx = this.monstersArray.indexOf(collisionMonster);
                 this.monstersArray.splice(idx, 1);
@@ -416,100 +478,26 @@ export default class Game {
                 this._resetGame();                
             }
         }
+    }
 
-        if (this.isSuper) {
-            this.superMovesLeft--;
-            //console.log(this.superMovesLeft);
+    private _redrawWholeField(): void {
+        for (let row of this.cellArray) {
+            for (let cell of row)
+                cell.draw();
         }
-
-        if (this.superMovesLeft == 0)
-            this.isSuper = false;
-
-        // for (let row of this.cellArray) {
-        //     for (let cell of row)
-        //         cell.draw();
-        // }
-        // this.pacman.draw();
-        // for (let monster of this.monstersArray) {
-        //     monster.draw();
-        // }
-
-        
-
-        this.decreaseMoveCount();
-
-        let nextState = this.getCurrentState();
-        this.learner.add(currentState, nextState, reward, action);
-
-        this.learner.learn(100);
-    }
-    
-    private updatePacman(): void {
-        this.pacman.updateDirection();
-        this.pacman.move();
-        this.pacman.setWeights();
-        this.pacman.previousCell.draw();
         this.pacman.draw();
-    }
-
-    private updateAllMonsters(): void {
         for (let monster of this.monstersArray) {
-            monster.move();
-            let monsterReward = REWARD.Monster;
-            if (this.isSuper)
-                monsterReward = REWARD.SuperMonster;
-            monster.setWeights(monsterReward);
-            monster.previousCell.draw();
             monster.draw();
         }
     }
 
-    private checkCollision() : Monster | undefined {
-        for (let monster of this.monstersArray) {
-            if (monster.previousCell == this.pacman.currentCell
-                || monster.currentCell == this.pacman.currentCell) {
-                    return monster;
-                }
-        }
-        return undefined;
+    public updateMoveCount(incr: number): void {
+        this.movesLeft += incr;;
+        this.movesLeftSpan.innerHTML = this.movesLeft.toString();
     }
 
-    private checkCollisionForPacman(): boolean {
-        for (let monster of this.monstersArray) {
-            if (this.checkCollisionForMonster(monster))
-                return true;
-        }
-        return false;
-    }
-
-    private checkCollisionForMonster(monster: Monster): boolean {
-        if (monster.x == this.pacman.x && monster.y == this.pacman.y) {
-            return true;
-        }
-        return false;
-    }
-
-    // protected checkMonsterCollosion() :void {
-    //     for (let monster of this.monstersArray) {
-    //         if (this.pacman.x === monster.x && this.pacman.y === monster.y) {
-    //             this.cellArray[monster.x][monster.y].draw();
-    //             let idx = this.monstersArray.indexOf(monster);
-    //             this.monstersArray.splice(idx, 1);
-    //         }
-    //     }
-    // }
     public getRandomNumber(min: number, max: number) :number {
         return Math.floor(Math.random() * (max - min + 1) + min);
-    }
-
-    public increaseMoveCount(): void {
-        this.movesLeft++;
-        this.movesLeftSpan.innerHTML = this.movesLeft.toString();
-    }
-
-    public decreaseMoveCount(): void {
-        this.movesLeft--;
-        this.movesLeftSpan.innerHTML = this.movesLeft.toString();
     }
 }
 
