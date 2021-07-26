@@ -12,6 +12,9 @@ export default class Monster extends Agent {
     private _axis: AXIS;
     private _isMoving: boolean;
 
+    protected defaultSource: string;
+    protected _image: HTMLImageElement;
+
     constructor(x: number, y: number,
                 context: CanvasRenderingContext2D,
                 game: Game,
@@ -116,6 +119,16 @@ export default class Monster extends Agent {
         if (destinationCell.type == CELLTYPE.Wall)
             destinationCell = this.getDestinationCell(this._getNewDirection());
         destinationCell.weight = reward;
+    }
+
+    protected _setImage(source: string) :void {
+        this._image = new Image();
+        this._image.width = this._cellSize;
+        this._image.height = this._cellSize;
+        this._image.src = source;
+        this._image.onload = function(this : Monster) {
+            this.draw();
+        }.bind(this);
     }
 
     public draw(): void {

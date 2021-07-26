@@ -14,8 +14,6 @@ export default abstract class Agent {
     protected readonly _cellSize: number;
     protected readonly _game: Game;
 
-    protected defaultSource: string;
-    protected _image: HTMLImageElement;
     protected _context: CanvasRenderingContext2D;
 
     constructor(x: number, y: number, ctx: CanvasRenderingContext2D, game: Game, size: number = 20) {
@@ -80,16 +78,6 @@ export default abstract class Agent {
     }
 
     protected abstract _makeAStep(destinationCell: Cell): void;
-
-    protected _setImage(source: string) :void {
-        this._image = new Image();
-        this._image.width = this._cellSize;
-        this._image.height = this._cellSize;
-        this._image.src = source;
-        this._image.onload = function(this : Agent) {
-            this.draw();
-        }.bind(this);
-    }
 
     public abstract draw(): void;
 }

@@ -100,6 +100,15 @@ export default class Monster extends Agent {
             destinationCell = this.getDestinationCell(this._getNewDirection());
         destinationCell.weight = reward;
     }
+    _setImage(source) {
+        this._image = new Image();
+        this._image.width = this._cellSize;
+        this._image.height = this._cellSize;
+        this._image.src = source;
+        this._image.onload = function () {
+            this.draw();
+        }.bind(this);
+    }
     draw() {
         this._context.drawImage(this._image, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
     }

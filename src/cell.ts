@@ -19,6 +19,8 @@ export default class Cell {
     neighborArray: Cell[] = [];
 
     private _image: HTMLImageElement;
+    private sx: number;
+    private sy: number;
 
     private _context: CanvasRenderingContext2D;
 
@@ -58,7 +60,7 @@ export default class Cell {
 
     // Поиском в ширину найти дистанцию до ближайшей еды. Путь к ближайшей еде блокирует монстр - найти дистанцию до второй по близости еды.
     private getDistanceToFood(excludedCell: Cell = undefined, visited: Map<Cell, number> = undefined, centerCell: Cell = undefined): number {
-        let queue : Cell[] = [this];
+        let queue: Cell[] = [this];
         if (visited == undefined)
             visited = new Map<Cell, number>([[this, 0]]);
         if (centerCell != undefined)
@@ -90,22 +92,132 @@ export default class Cell {
         return result;
     }
 
-    protected _setImage() :void {
+    private getCellTypeForWallTexture(x: number, y: number): CELLTYPE {
+        if (x < 0 || x > this._game.width - 1 || y < 0 || y > this._game.height - 1)
+            return CELLTYPE.Empty;
+        if (this._game.cellArray[x][y].type != CELLTYPE.Wall)
+            return CELLTYPE.Empty;
+        return this._game.cellArray[x][y].type
+    }
+
+    public setOffsetForWallTexture(): void {
+        let sidesArray: CELLTYPE[] = [];
+        let cornersArray: CELLTYPE[] = [];
+        let left: CELLTYPE;
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                let s = i != -1 ? -j : j;
+                if (s == 0 && i == 0)
+                    continue;
+                let celltype = this.getCellTypeForWallTexture(this.x + s, this.y + i);
+                if (s == 0 || i == 0) {
+                    if (s == -1)
+                        left = celltype;
+                    else
+                        sidesArray.push(celltype);
+                }
+                else
+                    cornersArray.push(celltype);
+            }
+        }
+        sidesArray.push(left);
+        let emptySidesCount = sidesArray.filter((obj) => obj != CELLTYPE.Wall).length;
+        let emptyCornersCount = cornersArray.filter((obj) => obj != CELLTYPE.Wall).length;
+
+
+        let row: number;
+        let column: number;
+        switch (emptySidesCount) {
+            case 0:
+                switch (emptyCornersCount) {
+                    // Пустая
+                    case 0: row = 0; column = 1; break;
+                    // Угол
+                    case 1:
+                        for (let i = 0; i < 4; i++) {
+                            if (cornersArray[i] == CELLTYPE.Empty) {
+                                row = 2; column = (i + 1) % 4; break;
+                            }
+                        }
+                        break;
+                    case 2:
+                        for (let i = 0; i < 4; i++) {
+                            let next = (i + 1) % 4; let next2 = (i + 2) % 4;
+                            // Тройной
+                            if (cornersArray[i] == CELLTYPE.Empty && cornersArray[next] == CELLTYPE.Empty) {
+                                row = 4; column = i; break;
+                            }
+                            // Четверной
+                            if (cornersArray[i] == CELLTYPE.Empty && cornersArray[next2] == CELLTYPE.Empty) {
+                                row = 5; column = 0; break;
+                            }
+                        }
+                        break;
+                    // Четверной
+                    case 3:
+                        row = 5; column = 0; break;
+                    // Четверной
+                    case 4:
+                        row = 5; column = 0; break;
+                }
+                break;
+            // Двойной 3 или тройной 4
+            case 1:
+                for (let i = 0; i < 4; i++) {
+                    let next2 = (i + 2) % 4; let next3 = (i + 3) % 4;
+                    if (sidesArray[i] == CELLTYPE.Empty) {
+                        if (sidesArray[next2] == CELLTYPE.Wall) {
+                            if (cornersArray[next2] == CELLTYPE.Wall && cornersArray[next3] == CELLTYPE.Wall) {
+                                row = 3; column = i % 2; break;
+                            } else {
+                                row = 4; column = (i + 2) % 4; break;
+                            }
+                        } else {
+                            row = 3; column = i % 2; break;
+                        }
+                    }
+                }
+                break;
+            case 2:
+                for (let i = 0; i < 4; i++) {
+                    let next = (i + 1) % 4; let next2 = (i + 2) % 4;
+                    // Угол
+                    if (sidesArray[i] == CELLTYPE.Empty && sidesArray[i] == sidesArray[next]) {
+                        row = 2; column = i; break;
+                    }
+                    // Двойной
+                    if (sidesArray[i] == CELLTYPE.Empty && sidesArray[i] == sidesArray[next2]) {
+                        row = 3; column = i % 2; break;
+                    }
+                }
+                break;
+            // Конец
+            case 3:
+                for (let i = 0; i < 4; i++) {
+                    if (sidesArray[i] == CELLTYPE.Wall) {
+                        row = 1; column = i; break;
+                    }
+                }
+                break;
+            // Точка
+            case 4: row = 0; column = 0; break;
+        }
+        this.sy = row * 56; this.sx = column * 56;
+    }
+
+    protected _setImage(): void {
         this._image = new Image();
-        this._image.width = this._drawSize;
-        this._image.height = this._drawSize;
         if (this.type == CELLTYPE.Wall) {
-            this._image.src = "src/assets/img/wall.png";
-        
-            this._image.onload = function(this : Cell) {
+            this._image.src = "src/assets/img/level-scaled.png";
+            this._image.onload = function (this: Cell) {
                 this.draw();
             }.bind(this);
-        }  
+        }
     }
 
     public draw(): void {
         // drawText нужен для отрисовки весов (дебаггинг)
-        this._drawRectangle("MediumBlue");
+        this._drawRectangle("black");
         switch (this.type) {
             // case CELLTYPE.Empty: {
             //     // this._drawText(this.weight.toString(), "purple");
@@ -140,8 +252,8 @@ export default class Cell {
     protected _drawCircle(color: string, radiusMultiplier: number = 1) {
         const middleOfCellSize = this._drawSize / 2;
         this._context.beginPath();
-        this._context.arc(this.x * this._drawSize + middleOfCellSize , this.y * this._drawSize + middleOfCellSize,
-             middleOfCellSize / 2 * radiusMultiplier, 0, 2 * Math.PI, false);
+        this._context.arc(this.x * this._drawSize + middleOfCellSize, this.y * this._drawSize + middleOfCellSize,
+            middleOfCellSize / 2 * radiusMultiplier, 0, 2 * Math.PI, false);
         this._context.fillStyle = color;
         this._context.fill();
         this._context.lineWidth = 1;
@@ -150,7 +262,7 @@ export default class Cell {
     }
 
     protected _drawImage() {
-        this._context.drawImage(this._image, this.x * this._drawSize, this.y * this._drawSize, this._drawSize, this._drawSize);
+        this._context.drawImage(this._image, this.sx, this.sy, 56, 56, this.x * this._drawSize, this.y * this._drawSize, this._drawSize, this._drawSize);
     }
 
     protected _drawText(text: string, color: string) {

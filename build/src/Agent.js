@@ -52,13 +52,4 @@ export default class Agent {
                 break;
         }
     }
-    _setImage(source) {
-        this._image = new Image();
-        this._image.width = this._cellSize;
-        this._image.height = this._cellSize;
-        this._image.src = source;
-        this._image.onload = function () {
-            this.draw();
-        }.bind(this);
-    }
 }
