@@ -1,71 +1,53 @@
+import Agent from "./Agent.js";
 import { DIR } from "./pacman.js";
 import { CELLTYPE } from "./cell.js";
+import { REWARD } from "./game.js";
 export var AXIS;
 (function (AXIS) {
     AXIS[AXIS["Hor"] = 0] = "Hor";
     AXIS[AXIS["Vert"] = 1] = "Vert";
 })(AXIS || (AXIS = {}));
-export default class Monster {
+export default class Monster extends Agent {
     constructor(x, y, context, game, cellSize = 20) {
-        this.x = x;
-        this.y = y;
-        this._context = context;
-        this._cellSize = cellSize;
-        this._game = game;
+        super(x, y, context, game, cellSize);
         this._isMoving = true;
-        this._setImage();
+        this.defaultSource = "src/assets/img/monster.png";
+        this._setImage(this.defaultSource);
     }
     move() {
-        let lastCellMonster = this._game.cellArray[this.x][this.y];
-        let destinationCell = this.getDestinationCell();
         if (this._isMoving) {
+            let destinationCell = this.getDestinationCell();
             switch (destinationCell.type) {
                 case CELLTYPE.Wall:
-                    this._changeDirection();
+                    this._direction = this._getNewDirection();
+                    destinationCell = this.getDestinationCell();
+                    this._makeAStep(destinationCell);
                     break;
                 default:
-                    this._makeAStep();
+                    this._makeAStep(destinationCell);
                     break;
             }
         }
-        return lastCellMonster;
     }
-    _makeAStep() {
-        switch (this._direction) {
-            case DIR.Up:
-                this.y--;
-                break;
-            case DIR.Down:
-                this.y++;
-                break;
-            case DIR.Left:
-                this.x--;
-                break;
-            case DIR.Right:
-                this.x++;
-                break;
-            default:
-                break;
-        }
+    _makeAStep(destinationCell) {
+        this.previousCell = this.currentCell;
+        this.previousCell.hasMonster = false;
+        this.currentCell = destinationCell;
+        this.currentCell.hasMonster = true;
+        this._changeCoordinates();
     }
-    _setImage() {
-        this._image = new Image();
-        this._image.width = this._cellSize;
-        this._image.height = this._cellSize;
-        this._image.src = "src/assets/img/monster.svg";
-        this._image.onload = function () {
-            this.draw();
-        }.bind(this);
-    }
+    // Выбрать направление движения монстра
     initDirection() {
         let isHorAllowed = false;
         let isVertAllowed = false;
-        if (this._game.cellArray[this.x - 1][this.y].type === CELLTYPE.Food
-            || this._game.cellArray[this.x + 1][this.y].type === CELLTYPE.Food) {
+        let left = this._game.cellArray[this.x - 1][this.y];
+        let right = this._game.cellArray[this.x + 1][this.y];
+        let up = this._game.cellArray[this.x][this.y - 1];
+        let down = this._game.cellArray[this.x][this.y + 1];
+        if (left.type === CELLTYPE.Food || right.type === CELLTYPE.Food || left.type === CELLTYPE.Empty || right.type === CELLTYPE.Empty) {
             isHorAllowed = true;
         }
-        else if (this._game.cellArray[this.x][this.y + 1].type === CELLTYPE.Food
-            || this._game.cellArray[this.x][this.y - 1].type === CELLTYPE.Food) {
+        else if (up.type === CELLTYPE.Food || down.type === CELLTYPE.Food || up.type === CELLTYPE.Empty || down.type === CELLTYPE.Empty) {
             isVertAllowed = true;
         }
         if (!isHorAllowed && !isVertAllowed) {
@@ -93,50 +75,32 @@ export default class Monster {
             this._direction = DIR.Up;
         }
     }
-    getDestinationCell() {
-        let newX = this.x;
-        let newY = this.y;
-        switch (this._direction) {
-            case DIR.Up:
-                newY--;
-                break;
-            case DIR.Down:
-                newY++;
-                break;
-            case DIR.Left:
-                newX--;
-                break;
-            case DIR.Right:
-                newX++;
-                break;
-            default:
-                throw "Invalid direction!";
-        }
-        return this._game.cellArray[newX][newY];
-    }
     _getRandomAxis() {
         let random = this._game.getRandomNumber(0, 1);
         return random ? AXIS.Hor : AXIS.Vert;
     }
-    _changeDirection() {
+    _getNewDirection() {
         switch (this._direction) {
             case DIR.Up:
-                this._direction = DIR.Down;
-                break;
+                return DIR.Down;
             case DIR.Down:
-                this._direction = DIR.Up;
-                break;
+                return DIR.Up;
             case DIR.Left:
-                this._direction = DIR.Right;
-                break;
+                return DIR.Right;
             case DIR.Right:
-                this._direction = DIR.Left;
-                break;
+                return DIR.Left;
             default:
                 break;
         }
     }
-    draw(x = this.x, y = this.y) {
-        this._context.drawImage(this._image, x * this._cellSize, y * this._cellSize, this._cellSize, this._cellSize);
+    setWeights(reward = REWARD.Monster) {
+        this.currentCell.weight = reward;
+        let destinationCell = this.getDestinationCell();
+        if (destinationCell.type == CELLTYPE.Wall)
+            destinationCell = this.getDestinationCell(this._getNewDirection());
+        destinationCell.weight = reward;
+    }
+    draw() {
+        this._context.drawImage(this._image, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
     }
 }
