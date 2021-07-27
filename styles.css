@@ -1,5 +1,6 @@
 body {
     background-color: #222a5e;
+    font-family: Lucida Console;
 }
 
 .field {
@@ -11,7 +12,7 @@ span {
     color: whitesmoke;
     width: max-content;
     font-size: 20px;
-    font-family: Lucida Console;
+
 }
 
 .info-board {
@@ -26,3 +27,27 @@ span {
 .info-board.two {
     grid-template-columns: repeat(2, 1fr);
 }
+
+select, input {
+    height: 28px;
+    padding: 0 12px 0 10px;
+    background: black;
+    color: whitesmoke;
+    border: 1px solid #1900fd;
+    border-radius: 10px;
+    font-family: Lucida Console;
+}
+
+select {
+    width: 110px;
+}
+
+input {
+    width: 70px;
+}
+
+select:hover, input:hover {
+    box-shadow: 0 0 3px whitesmoke;
+}
+
+
