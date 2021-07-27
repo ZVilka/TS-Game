@@ -11,13 +11,8 @@ export var DIR;
 export default class Pacman extends Agent {
     constructor(x, y, dir, ctx, game, size = 20) {
         super(x, y, ctx, game, size);
-        this.isSuper = false;
-        this.superMovesLeft = 0;
-        this.movesPerSuperfood = 20;
         this._direction = dir;
         this._nextDir = dir;
-        this.defaultSources = [];
-        this.superSources = [];
         this._setImages();
     }
     updateDirection() {
@@ -101,22 +96,13 @@ export default class Pacman extends Agent {
     }
     eatFood(cell) {
         if (cell.type == CELLTYPE.SuperFood) {
-            this.makeSuper();
-            this.updateSuperMoveCount(this.movesPerSuperfood);
+            this._game.enableSuper();
+            this._game.updateSuperMoveCount();
         }
         this._game.totalFoodEaten++;
         this._game.updateMoveCount(1);
         this._game.remainingFood--;
         cell.type = CELLTYPE.Empty;
-    }
-    updateSuperMoveCount(incr) {
-        this.superMovesLeft += incr;
-    }
-    makeSuper() {
-        this.isSuper = true;
-    }
-    stopSuper() {
-        this.isSuper = false;
     }
     _setImages() {
         this.defaultSources = [];
@@ -137,7 +123,7 @@ export default class Pacman extends Agent {
     }
     draw() {
         let img;
-        if (!this.isSuper)
+        if (!this._game.isSuper)
             img = this.defaultSources[this._direction];
         else
             img = this.superSources[this._direction];

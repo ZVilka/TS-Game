@@ -1,6 +1,8 @@
 import { DIR } from "./pacman.js";
 export default class Agent {
     constructor(x, y, ctx, game, size = 20) {
+        this.defaultSources = [];
+        this.superSources = [];
         this.x = x;
         this.y = y;
         this._context = ctx;

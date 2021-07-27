@@ -107,6 +107,9 @@ export default class Game {
         this.isPaused = true;
         this.gameSpeed = 100;
         this.currentLevel = 0;
+        this.isSuper = false;
+        this.superMovesLeft = 0;
+        this.movesPerSuperfood = 20;
         this.monstersArray = [];
         this.cellArray = [];
         this.learner = new QLearner(0.1, 0.9);
@@ -364,10 +367,10 @@ export default class Game {
         // Двинуть всех агентов, пересчитать веса, перерисовать
         this._doAllAgentsMove();
         // Обновить супер-режим
-        if (this.pacman.isSuper) {
-            this.pacman.updateSuperMoveCount(-1);
-            if (this.pacman.superMovesLeft == 0)
-                this.pacman.stopSuper();
+        if (this.isSuper) {
+            this.updateSuperMoveCount(-1);
+            if (this.superMovesLeft == 0)
+                this.disableSuper();
         }
         // Если нужно рисовать веса клеток
         //this._redrawWholeField();
@@ -402,7 +405,7 @@ export default class Game {
         for (let monster of this.monstersArray) {
             monster.move();
             let monsterReward = REWARD.Monster;
-            if (this.pacman.isSuper)
+            if (this.isSuper)
                 monsterReward = REWARD.SuperMonster;
             monster.setWeights(monsterReward);
             monster.previousCell.draw();
@@ -417,7 +420,7 @@ export default class Game {
             }
         }
         if (collisionMonster) {
-            if (this.pacman.isSuper) {
+            if (this.isSuper) {
                 collisionMonster.currentCell.draw();
                 let idx = this.monstersArray.indexOf(collisionMonster);
                 this.monstersArray.splice(idx, 1);
@@ -436,6 +439,15 @@ export default class Game {
         for (let monster of this.monstersArray) {
             monster.draw();
         }
+    }
+    enableSuper() {
+        this.isSuper = true;
+    }
+    disableSuper() {
+        this.isSuper = false;
+    }
+    updateSuperMoveCount(incr = this.movesPerSuperfood) {
+        this.superMovesLeft += incr;
     }
     updateMoveCount(incr) {
         this.movesLeft += incr;;

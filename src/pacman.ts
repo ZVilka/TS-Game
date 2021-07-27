@@ -10,21 +10,13 @@ export enum DIR {
 }
 
 export default class Pacman extends Agent {
-    public isSuper: boolean = false;
-    public superMovesLeft: number = 0;
-    private movesPerSuperfood: number = 20;
-
     public _nextDir: DIR;
-
-    private superSources: HTMLImageElement[];
 
     constructor(x: number, y: number, dir: DIR, ctx: CanvasRenderingContext2D, game: Game, size: number = 20) {
         super(x, y, ctx, game, size);
         this._direction = dir;
         this._nextDir = dir;
 
-        this.defaultSources = []
-        this.superSources = [];
         this._setImages();
     }
 
@@ -112,25 +104,13 @@ export default class Pacman extends Agent {
 
     public eatFood(cell: Cell): void {
         if (cell.type == CELLTYPE.SuperFood) {
-            this.makeSuper();
-            this.updateSuperMoveCount(this.movesPerSuperfood);
+            this._game.enableSuper();
+            this._game.updateSuperMoveCount();
         }
         this._game.totalFoodEaten++;
         this._game.updateMoveCount(1);
         this._game.remainingFood--;
         cell.type = CELLTYPE.Empty;
-    }
-
-    public updateSuperMoveCount(incr: number): void {
-        this.superMovesLeft += incr;
-    }
-
-    public makeSuper(): void {
-        this.isSuper = true;
-    }
-
-    public stopSuper(): void {
-        this.isSuper = false;
     }
 
     protected _setImages(): void {
@@ -152,7 +132,7 @@ export default class Pacman extends Agent {
 
     public draw(): void {
         let img: HTMLImageElement;
-        if (!this.isSuper)
+        if (!this._game.isSuper)
             img = this.defaultSources[this._direction];
         else
             img = this.superSources[this._direction];
