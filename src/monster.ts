@@ -12,19 +12,14 @@ export default class Monster extends Agent {
     private _axis: AXIS;
     private _isMoving: boolean;
 
-    protected defaultSource: string;
-    protected _image: HTMLImageElement;
-
     constructor(x: number, y: number,
                 context: CanvasRenderingContext2D,
                 game: Game,
                 cellSize:number = 20) {
         super(x, y, context, game, cellSize);
-
         this._isMoving = true;
 
-        this.defaultSource = "src/assets/img/monster.png";
-        this._setImage(this.defaultSource );
+        this._setImages();
     }
 
     public move(): void {
@@ -121,17 +116,20 @@ export default class Monster extends Agent {
         destinationCell.weight = reward;
     }
 
-    protected _setImage(source: string) :void {
-        this._image = new Image();
-        this._image.width = this._cellSize;
-        this._image.height = this._cellSize;
-        this._image.src = source;
-        this._image.onload = function(this : Monster) {
-            this.draw();
-        }.bind(this);
+    protected _setImages() :void {
+        this.defaultSources = [];
+        let rand = Math.floor(Math.random() * 4);
+        for (let i = 0; i < 4; i++) {
+            let defaultImage = new Image(); defaultImage.src = `src/assets/img/monsters/ghost${rand}${i}.png`;
+            this.defaultSources.push(defaultImage);
+            defaultImage.onload = function (this: Monster) {
+                this.draw();
+            }.bind(this);
+        }
     }
 
     public draw(): void {
-        this._context.drawImage(this._image, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
+        let img = this.defaultSources[this._direction];
+        this._context.drawImage(img, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
     }
 }

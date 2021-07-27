@@ -11,8 +11,7 @@ export default class Monster extends Agent {
     constructor(x, y, context, game, cellSize = 20) {
         super(x, y, context, game, cellSize);
         this._isMoving = true;
-        this.defaultSource = "src/assets/img/monster.png";
-        this._setImage(this.defaultSource);
+        this._setImages();
     }
     move() {
         if (this._isMoving) {
@@ -100,16 +99,20 @@ export default class Monster extends Agent {
             destinationCell = this.getDestinationCell(this._getNewDirection());
         destinationCell.weight = reward;
     }
-    _setImage(source) {
-        this._image = new Image();
-        this._image.width = this._cellSize;
-        this._image.height = this._cellSize;
-        this._image.src = source;
-        this._image.onload = function () {
-            this.draw();
-        }.bind(this);
+    _setImages() {
+        this.defaultSources = [];
+        let rand = Math.floor(Math.random() * 4);
+        for (let i = 0; i < 4; i++) {
+            let defaultImage = new Image();
+            defaultImage.src = `src/assets/img/monsters/ghost${rand}${i}.png`;
+            this.defaultSources.push(defaultImage);
+            defaultImage.onload = function () {
+                this.draw();
+            }.bind(this);
+        }
     }
     draw() {
-        this._context.drawImage(this._image, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
+        let img = this.defaultSources[this._direction];
+        this._context.drawImage(img, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
     }
 }

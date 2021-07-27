@@ -114,13 +114,12 @@ export default class Pacman extends Agent {
     }
     makeSuper() {
         this.isSuper = true;
-        //this._image.src = this.superSource;
     }
     stopSuper() {
         this.isSuper = false;
-        //this._image.src = this.defaultSource;
     }
     _setImages() {
+        this.defaultSources = [];
         for (let i = 0; i < 4; i++) {
             let defaultImage = new Image();
             defaultImage.src = `src/assets/img/pacman/pacman${i}.png`;

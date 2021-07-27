@@ -16,7 +16,6 @@ export default class Pacman extends Agent {
 
     public _nextDir: DIR;
 
-    private defaultSources: HTMLImageElement[];
     private superSources: HTMLImageElement[];
 
     constructor(x: number, y: number, dir: DIR, ctx: CanvasRenderingContext2D, game: Game, size: number = 20) {
@@ -34,7 +33,6 @@ export default class Pacman extends Agent {
         if (destinationCell.type !== CELLTYPE.Wall) {
             this._direction = this._nextDir;
         }
-        
         this._nextDir = this._direction;
     }
 
@@ -129,15 +127,14 @@ export default class Pacman extends Agent {
 
     public makeSuper(): void {
         this.isSuper = true;
-        //this._image.src = this.superSource;
     }
 
     public stopSuper(): void {
         this.isSuper = false;
-        //this._image.src = this.defaultSource;
     }
 
-    protected _setImages() :void {
+    protected _setImages(): void {
+        this.defaultSources = [];
         for (let i = 0; i < 4; i++) {
             let defaultImage = new Image(); defaultImage.src = `src/assets/img/pacman/pacman${i}.png`;
             this.defaultSources.push(defaultImage);
