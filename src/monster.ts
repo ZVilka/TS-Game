@@ -125,11 +125,21 @@ export default class Monster extends Agent {
             defaultImage.onload = function (this: Monster) {
                 this.draw();
             }.bind(this);
+
+            let superImage = new Image(); superImage.src = `src/assets/img/monsters/ghost-super${i}.png`;
+            this.superSources.push(superImage);
+            superImage.onload = function (this: Monster) {
+                this.draw();
+            }.bind(this);
         }
     }
 
     public draw(): void {
-        let img = this.defaultSources[this._direction];
+        let img: HTMLImageElement;
+        if (!this._game.isSuper)
+            img = this.defaultSources[this._direction];
+        else
+            img = this.superSources[this._direction];
         this._context.drawImage(img, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
     }
 }

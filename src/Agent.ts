@@ -14,7 +14,8 @@ export default abstract class Agent {
     protected readonly _cellSize: number;
     protected readonly _game: Game;
 
-    protected defaultSources: HTMLImageElement[];
+    protected defaultSources: HTMLImageElement[] = [];
+    protected superSources: HTMLImageElement[] = [];
 
     protected _context: CanvasRenderingContext2D;
 

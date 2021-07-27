@@ -2,7 +2,6 @@ import Pacman, {DIR} from "./pacman.js";
 import Monster from "./monster.js";
 import Cell, {CELLTYPE} from "./cell.js";
 import  QLearner from "../lib/q-learning.js";
-import { throws } from "assert";
 
 const level1: string = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 wfffffffmfffffwwfffffmfffffffw
@@ -115,6 +114,10 @@ export default class Game {
     isPaused: boolean = true;
     gameSpeed: number = 100;
     currentLevel: number = 0;
+
+    isSuper: boolean = false;
+    superMovesLeft: number = 0;
+    movesPerSuperfood: number = 20;
 
     pacman: Pacman;
     monstersArray: Monster[] = [];
@@ -414,10 +417,10 @@ export default class Game {
         this._doAllAgentsMove();
 
         // Обновить супер-режим
-        if (this.pacman.isSuper) {
-            this.pacman.updateSuperMoveCount(-1);
-            if (this.pacman.superMovesLeft == 0)
-                this.pacman.stopSuper();
+        if (this.isSuper) {
+            this.updateSuperMoveCount(-1);
+            if (this.superMovesLeft == 0)
+                this.disableSuper();
         }
         
         // Если нужно рисовать веса клеток
@@ -458,7 +461,7 @@ export default class Game {
         for (let monster of this.monstersArray) {
             monster.move();
             let monsterReward = REWARD.Monster;
-            if (this.pacman.isSuper)
+            if (this.isSuper)
                 monsterReward = REWARD.SuperMonster;
             monster.setWeights(monsterReward);
             monster.previousCell.draw();
@@ -474,7 +477,7 @@ export default class Game {
                 }
         }
         if (collisionMonster) {
-            if (this.pacman.isSuper) {
+            if (this.isSuper) {
                 collisionMonster.currentCell.draw();
                 let idx = this.monstersArray.indexOf(collisionMonster);
                 this.monstersArray.splice(idx, 1);
@@ -494,6 +497,18 @@ export default class Game {
         for (let monster of this.monstersArray) {
             monster.draw();
         }
+    }
+
+    public enableSuper(): void {
+        this.isSuper = true;
+    }
+
+    public disableSuper(): void {
+        this.isSuper = false;
+    }
+
+    public updateSuperMoveCount(incr: number = this.movesPerSuperfood): void {
+        this.superMovesLeft += incr;
     }
 
     public updateMoveCount(incr: number): void {
