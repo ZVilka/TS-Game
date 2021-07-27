@@ -13,19 +13,17 @@ export default class Pacman extends Agent {
         super(x, y, ctx, game, size);
         this.isSuper = false;
         this.superMovesLeft = 0;
-        this._rotation = 0;
         this.movesPerSuperfood = 20;
         this._direction = dir;
         this._nextDir = dir;
-        this.defaultSource = "src/assets/img/pacman.png";
-        this.superSource = "src/assets/img/pacman-super.png";
-        this._setImage(this.defaultSource);
+        this.defaultSources = [];
+        this.superSources = [];
+        this._setImages();
     }
     updateDirection() {
         let destinationCell = this.getDestinationCell(this._nextDir);
         if (destinationCell.type !== CELLTYPE.Wall) {
             this._direction = this._nextDir;
-            this._setRotation();
         }
         this._nextDir = this._direction;
     }
@@ -101,24 +99,6 @@ export default class Pacman extends Agent {
         this.currentCell = destinationCell;
         this._changeCoordinates();
     }
-    _setRotation() {
-        switch (this._direction) {
-            case DIR.Up:
-                this._rotation = 0;
-                break;
-            case DIR.Right:
-                this._rotation = 90;
-                break;
-            case DIR.Down:
-                this._rotation = 180;
-                break;
-            case DIR.Left:
-                this._rotation = 270;
-                break;
-            default:
-                throw "Invalid direction!";
-        }
-    }
     eatFood(cell) {
         if (cell.type == CELLTYPE.SuperFood) {
             this.makeSuper();
@@ -134,20 +114,33 @@ export default class Pacman extends Agent {
     }
     makeSuper() {
         this.isSuper = true;
-        this._image.src = this.superSource;
     }
     stopSuper() {
         this.isSuper = false;
-        this._image.src = this.defaultSource;
+    }
+    _setImages() {
+        this.defaultSources = [];
+        for (let i = 0; i < 4; i++) {
+            let defaultImage = new Image();
+            defaultImage.src = `src/assets/img/pacman/pacman${i}.png`;
+            this.defaultSources.push(defaultImage);
+            defaultImage.onload = function () {
+                this.draw();
+            }.bind(this);
+            let superImage = new Image();
+            superImage.src = `src/assets/img/pacman/pacman-super${i}.png`;
+            this.superSources.push(superImage);
+            superImage.onload = function () {
+                this.draw();
+            }.bind(this);
+        }
     }
     draw() {
-        let centerX = this.x * this._cellSize + this._cellSize / 2;
-        let centerY = this.y * this._cellSize + this._cellSize / 2;
-        let radRotation = this._rotation * Math.PI / 180;
-        this._context.translate(centerX, centerY);
-        this._context.rotate(radRotation);
-        this._context.drawImage(this._image, -this._cellSize / 2, -this._cellSize / 2, this._cellSize, this._cellSize);
-        this._context.rotate(-radRotation);
-        this._context.translate(-centerX, -centerY);
+        let img;
+        if (!this.isSuper)
+            img = this.defaultSources[this._direction];
+        else
+            img = this.superSources[this._direction];
+        this._context.drawImage(img, this.x * this._cellSize, this.y * this._cellSize, this._cellSize, this._cellSize);
     }
 }

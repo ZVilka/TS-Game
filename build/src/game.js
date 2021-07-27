@@ -281,6 +281,8 @@ export default class Game {
                         this.pacman = pacman;
                         symbolCounter++;
                         break;
+                    default:
+                        throw "Invalid letter in level string!";
                 }
             }
             this.movesLeftSpan.innerHTML = this.movesLeft.toString();
@@ -292,9 +294,11 @@ export default class Game {
             }
             for (let arrCell of this.cellArray) {
                 for (let cell of arrCell) {
-                    cell.draw();
                     if (cell.type !== CELLTYPE.Wall)
                         cell.setNeighbors();
+                    else
+                        cell.setOffsetForWallTexture();
+                    cell.draw();
                 }
             }
         }
@@ -359,8 +363,6 @@ export default class Game {
         }
         // Двинуть всех агентов, пересчитать веса, перерисовать
         this._doAllAgentsMove();
-        // Если было столкновение пакмана и монстра - перезагрузить уровень
-        this._checkCollision();
         // Обновить супер-режим
         if (this.pacman.isSuper) {
             this.pacman.updateSuperMoveCount(-1);
@@ -383,6 +385,8 @@ export default class Game {
         }
         this._updateAllMonsters();
         this._updatePacman();
+        // Если было столкновение пакмана и монстра - перезагрузить уровень
+        this._checkCollision();
         this.pacman.draw();
         for (let monster of this.monstersArray) {
             monster.draw();
