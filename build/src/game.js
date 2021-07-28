@@ -33,34 +33,34 @@ wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
 wpwwffffffffffmfffffffffffwwfw
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 const level2 = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-wfffffmfffffffwwfffffffffffffw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwfw
-wfwwwwwfwwwwwfwwfwwwwwfwwwwwmw
-wffffffffffwwfwwfwwffffffffffw
-wfwwwwwfwwffffffffffwwmwwwwwfw
-wfwwwwwfwwfwwwwwwwwfwwfwwwwwfw
-wfffffffwwfwwwwwwwwfwwfffffffw
-wfwwwwwfwwffffwwffffwwfwwwwwfw
-wfwwwwwmwwwwwfwwfwwwwwfwwwwwfw
-wfffffffwwwwwfwwfwwwwwfffffffw
-wwwwwwwfffffffffffmffffwwwwwww
-wwwwwwwfwwfwwwffwwwfwwfwwwwwww
-wwwwwwwfwwfwffffffwfwwfwwwwwww
-wwwwwwwfwwfwffffffwfwwfwwwwwww
-wfffffffwwfwffffffwfwwfffffffw
-wfwwwwwfwwfwffffffwfwwfwwwwwfw
-wfwwwwwfwwfwwwffwwwfwwfwwwwwfw
-wffffwwfwwffffffffffwwfwwffffw
-wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-wwwwfwwfwwfwwwwwwwwfwwfwwfwwww
-wfffffffffffsfwwfffmfffffffffw
-wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-wfwwwwwwwwwwwfwwfwwwwwwwwwwwfw
-wfwwffffffffffwwffffffffffwwfw
-wfwwfwwwwwwwwfwwfwwwwwwwwfwwfw
-wpwwffffmfffffffffffffffffwwfw
+wfffffffwwwwwwwwfffffffwwwwwww
+wfwwwwwfwwwwwwwmfffffffwmwwwww
+wfwwwwwfwwwwwwwwffffffffffwwww
+wfwwwwwfwwwwwwffffffffffffwwww
+wfwwwwwfwwwwwwffffffffffffwwww
+wfffffffwwwwwwffffffffffffwwww
+wfwwwwwfwwwwwwffffffffffffwwww
+wfwwwwwfwwwwwwffffffffffffwwww
+wfffffffwwwwwwffffffffffffwwww
+wfwwwwwfwwwwwwffffffffffwwwwww
+wfwwwwwfwwwwwwwmwfffffffmwwwww
+wfffffffwwwwwwwwwfffffffwwwwww
+wwwwwwwfwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwfwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwfwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwfwwwwwwwwwwwwwwwwwwwwww
+wwwwwwwfwwwwwwwwwwwwwwwwwwwwww
+wfffffffwwwwpffffffffffffffffw
+wfwwwwwfwwwwwwwwwwwwwwwwwwwwfw
+wfwwwwwfwwwwwwwwwwwwffwwwwwwfw
+wfwwwwwfwwwwffffffffffffffmffw
+wfwwwwwfwwwwfwwwwwwwwwwwwwwwww
+wfffffffwwwwfwwwwwwffwwwwwwwww
+wfwwwwwfwwwwffmffffffffffffffw
+wfwwwwwfwwwwwwwwwwwwwwwwwwwwfw
+wfffffffwwwwwwwwwwwwffwwwwwwfw
+wfwwwwwfwwwwsfffffffffffffmffw
+wfwwwwwfwwwwwwwwwwwwwwwwwwwwww
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwww`;
 const level3 = `wwwwwwwwwwwwwwwwwwwwwwwwwwwwww
 weeeeeeeeeeeeewweeeeeeeeeeeeew
@@ -399,7 +399,8 @@ export default class Game {
         this.pacman.updateDirection();
         this.pacman.move();
         this.pacman.setWeights();
-        this.pacman.previousCell.draw();
+        if (this.pacman.previousCell)
+            this.pacman.previousCell.draw();
     }
     _updateAllMonsters() {
         for (let monster of this.monstersArray) {
@@ -408,7 +409,8 @@ export default class Game {
             if (this.isSuper)
                 monsterReward = REWARD.SuperMonster;
             monster.setWeights(monsterReward);
-            monster.previousCell.draw();
+            if (monster.previousCell)
+                monster.previousCell.draw();
         }
     }
     _checkCollision() {
